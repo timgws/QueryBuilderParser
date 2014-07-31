@@ -1,6 +1,6 @@
 {
     "name": "timgws/query-builder-parser",
-    "homepage": "http://github.com/timgws/QueryBuilderParser"
+    "homepage": "http://github.com/timgws/QueryBuilderParser",
     "description": "Build complex Eloquent & QueryBuilder queries automatically when using jQuery-QueryBuilder",
     "keywords": [ "query builder", "laravel", "eloquent" ],
     "type": "library",
@@ -14,7 +14,7 @@
     ],
     "autoload": {
         "psr-4": {"QueryBuidlerParser\\": "src/QueryBuilderParser"}
-    }
+    },
     "minimum-stability": "dev",
     "require": {
 

@@ -97,7 +97,6 @@ class QueryBuilderParser {
 
     private function makeQuery($query, $rule)
     {
-        print_r($rule);
         if (!isset($rule->operator) or !isset($rule->id) or !isset($rule->field))
             return $query;
 

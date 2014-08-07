@@ -67,8 +67,14 @@ class QueryBuilderParser {
             throw new QBParseException('The query is not valid JSON');
         }
 
-        if (!is_array($query->rules)) {
+        // This can happen if the querybuilder had no rules...
+        if (!isset($query->rules) or !is_array($query->rules)) {
             //throw new QBParseException('The query has no rules.');
+            return $qb;
+        }
+
+        // This shouldn't ever cause an issue, but may as well not go through the rules.
+        if (count($query->rules) < 1) {
             return $qb;
         }
 

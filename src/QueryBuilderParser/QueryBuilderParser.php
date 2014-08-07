@@ -88,11 +88,13 @@ class QueryBuilderParser {
             $this->currentRule = $rule;
 
             if (isset($rule->rules)) {
-                $qb = $qb->whereNested(function($query) use (&$rule, &$qb) {
-                    foreach($rule->rules as $_rule) {
-                        $qb = $this->makeQuery($query, $_rule);
-                    }
-                }, $rule->condition);
+                if (is_array($rule->rules) && count($rule->rules) > 0) {
+                    $qb = $qb->whereNested(function($query) use (&$rule, &$qb) {
+                        foreach($rule->rules as $_rule) {
+                            $qb = $this->makeQuery($query, $_rule);
+                        }
+                    }, $rule->condition);
+                }
             } else {
                 $qb = $this->makeQuery($qb, $rule);
             }

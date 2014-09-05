@@ -48,6 +48,10 @@ class QueryBuilderParser {
         'is_not_null'      => array ('operator' => 'NOT NULL')
     );
 
+    protected $needs_array = array (
+        'IN', 'NOT IN'
+    );
+
     private $fields;
 
     public function QueryBuilderParser(array $fields = null)
@@ -130,7 +134,20 @@ class QueryBuilderParser {
             throw new QBParseException("Field ({$rule->field}) does not exist in fields list");
         }
 
-        $query = $query->where($rule->field, $_sql_op['operator'], $value);
+        $operator = $_sql_op['operator'];
+        $require_array = in_array($operator, $this->needs_array);
+
+        if ($require_array && !is_array($value)) {
+            throw new QBParseException("Field ({$rule->field}) should be an array, but it isn't.");
+        } elseif (!$require_array && is_array($value)) {
+            throw new QBParseException("Field ({$rule->field}) should not be an array, but it is.");
+        }
+
+        if ($require_array) {
+            $query = $query->whereIn($rule->field, $_sql_op['operator'], $value);
+        } else {
+            $query = $query->where($rule->field, $_sql_op['operator'], $value);
+        }
 
         return $query;
     }

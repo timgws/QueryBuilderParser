@@ -109,6 +109,9 @@ class QueryBuilderParser {
 
     private function makeQuery($query, $rule)
     {
+        /**
+         * Make sure most of the common fields from the QueryBuilder have been added.
+         */
         if (!isset($rule->operator) or !isset($rule->id) or !isset($rule->field))
             return $query;
 
@@ -125,8 +128,11 @@ class QueryBuilderParser {
             $value = $_sql_op['append'] . $value;
 
         if (isset($_sql_op['prepend']))
-            $value =  $value . $_sql_op['prepend'];
+            $value = $value . $_sql_op['prepend'];
 
+        /**
+         * Force the value to be null of the operator is null/not null...
+         */
         if ($rule->operator == "is_null" or $rule->operator == "is_not_null")
             $value = null;
 
@@ -137,6 +143,9 @@ class QueryBuilderParser {
         $operator = $_sql_op['operator'];
         $require_array = in_array($operator, $this->needs_array);
 
+        /**
+         * \o/ Ensure that the value is an array only if it should be.
+         */
         if ($require_array && !is_array($value)) {
             throw new QBParseException("Field ({$rule->field}) should be an array, but it isn't.");
         } elseif (!$require_array && is_array($value)) {

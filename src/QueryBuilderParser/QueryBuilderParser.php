@@ -1,6 +1,7 @@
 <?php
 
 namespace timgws;
+use \stdClass;
 
 class QueryBuilderParser {
 
@@ -86,6 +87,7 @@ class QueryBuilderParser {
     }
 
     private function loopThroughRules($rules, $qb)
+    private function loopThroughRules(array $rules, \Illuminate\Database\Query\Builder $qb)
     {
         foreach ($rules as $rule) {
             $this->currentRule = $rule;
@@ -110,6 +112,7 @@ class QueryBuilderParser {
     }
 
     private function createNestedQuery($qb, $rule, $condition = null)
+    private function createNestedQuery(\Illuminate\Database\Query\Builder $qb, stdClass $rule, $condition = null)
     {
         if ($condition == null)
             $condition = $rule->condition;
@@ -128,15 +131,15 @@ class QueryBuilderParser {
         }, $rule->condition);
     }
 
-    private function makeQuery($query, $rule)
+    private function makeQuery(\Illuminate\Database\Query\Builder $query, stdClass $rule)
     {
         /**
          * Make sure most of the common fields from the QueryBuilder have been added.
          */
-        if (!isset($rule->operator) or !isset($rule->id) or !isset($rule->field))
+        if (!isset($rule->operator) || !isset($rule->id) || !isset($rule->field))
             return $query;
 
-        if (!isset($rule->input) or !isset($rule->type))
+        if (!isset($rule->input) || !isset($rule->type))
             return $query;
 
         if (!isset($this->operators[$rule->operator]))
@@ -154,7 +157,7 @@ class QueryBuilderParser {
         /**
          * Force the value to be null of the operator is null/not null...
          */
-        if ($rule->operator == "is_null" or $rule->operator == "is_not_null")
+        if ($rule->operator == "is_null" || $rule->operator == "is_not_null")
             $value = null;
 
         if (is_array($this->fields) && !in_array($rule->field, $this->fields)) {

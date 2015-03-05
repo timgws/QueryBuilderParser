@@ -13,8 +13,7 @@
         }
     ],
     "autoload": {
-        "psr-4": {"timgws\\": "src/QueryBuilderParser/"},
-
+        "psr-4": {"timgws\\": "src/QueryBuilderParser/"}
     },
     "minimum-stability": "dev",
     "require": {

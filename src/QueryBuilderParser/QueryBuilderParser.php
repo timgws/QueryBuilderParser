@@ -64,8 +64,8 @@ class QueryBuilderParser {
     {
         $query = @json_decode($json);
 
-        if ($error_number = json_last_error()) {
-            throw new QBParseException('JSON parsing threw an error: ' . json_last_error_msg());
+        if ($error = json_last_error()) {
+            throw new QBParseException('JSON parsing threw an error: ' . $error);
         }
 
         if (!is_object($query)) {
@@ -74,7 +74,6 @@ class QueryBuilderParser {
 
         // This can happen if the querybuilder had no rules...
         if (!isset($query->rules) or !is_array($query->rules)) {
-            //throw new QBParseException('The query has no rules.');
             return $qb;
         }
 
@@ -112,7 +111,7 @@ class QueryBuilderParser {
 
     private function createNestedQuery(\Illuminate\Database\Query\Builder $qb, stdClass $rule, $condition = null)
     {
-        if ($condition == null)
+        if ($condition === null)
             $condition = $rule->condition;
 
         $condition = strtolower($condition);

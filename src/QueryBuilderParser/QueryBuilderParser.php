@@ -82,29 +82,41 @@ class QueryBuilderParser {
             return $qb;
         }
 
-        return $this->convertQBrules($query->rules, $qb);
+        return $this->loopThroughRules($query->rules, $qb);
     }
 
-    private function convertQBrules($rules, $qb, $nested = false)
+    private function loopThroughRules($rules, $qb)
     {
-        // nested = true will add a nested where statement to the query.
-        foreach($rules as $rule) {
+        foreach ($rules as $rule) {
             $this->currentRule = $rule;
 
-            if (isset($rule->rules)) {
-                if (is_array($rule->rules) && count($rule->rules) > 0) {
-                    $qb = $qb->whereNested(function($query) use (&$rule, &$qb) {
-                        foreach($rule->rules as $_rule) {
-                            $qb = $this->makeQuery($query, $_rule);
-                        }
-                    }, $rule->condition);
-                }
-            } else {
-                $qb = $this->makeQuery($qb, $rule);
+            $qb = $this->makeQuery($qb, $rule);
+
+            if ($this->isNested($rule)) {
+                $qb = $this->createNestedQuery($qb, $rule);
             }
         }
 
         return $qb;
+    }
+
+    private function isNested($rule)
+    {
+        if (isset($rule->rules)) {
+            if (is_array($rule->rules) && count($rule->rules) > 0) {
+                return true;
+            }
+        }
+    }
+
+    private function createNestedQuery($qb, $rule)
+    {
+        return $qb->whereNested(function($query) use (&$rule, &$qb) {
+            foreach($rule->rules as $_rule) {
+                $qb = $this->makeQuery($query, $_rule);
+            }
+
+        }, $rule->condition);
     }
 
     private function makeQuery($query, $rule)
@@ -151,7 +163,6 @@ class QueryBuilderParser {
         } elseif (!$require_array && is_array($value)) {
             throw new QBParseException("Field ({$rule->field}) should not be an array, but it is.");
         }
-
 
         if ($require_array) {
             if ($_sql_op['operator'] == 'IN') {

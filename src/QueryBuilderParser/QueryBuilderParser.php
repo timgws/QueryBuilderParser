@@ -61,7 +61,7 @@ class QueryBuilderParser {
 
     public function parse($json, \Illuminate\Database\Query\Builder $qb)
     {
-        $query = @json_decode($json);
+        $query = json_decode($json);
 
         if ($error = json_last_error()) {
             throw new QBParseException('JSON parsing threw an error: ' . $error);

@@ -2,6 +2,7 @@
 
 namespace timgws;
 use \stdClass;
+use timgws\QBParseException;
 
 class QueryBuilderParser {
 
@@ -181,9 +182,4 @@ class QueryBuilderParser {
 
         return $query;
     }
-}
-
-class QBParseException extends \Exception
-{
-    
 }

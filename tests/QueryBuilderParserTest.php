@@ -224,4 +224,14 @@ class QueryBuilderParserTest extends PHPUnit_Framework_TestCase
         //$this->assertEquals('/* This test currently fails. This should be fixed. */', $builder->toSql());
 
     }
+
+    /**
+     * @expectedException \timgws\QBParseException
+     */
+    public function testJSONParseException () {
+        $builder = $this->createQueryBuilder();
+        $qb = new QueryBuilderParser();
+
+        $qb->parse('{}]JSON', $builder);
+    }
 }

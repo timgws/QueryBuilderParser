@@ -86,7 +86,6 @@ class QueryBuilderParser {
         return $this->loopThroughRules($query->rules, $qb);
     }
 
-    private function loopThroughRules($rules, $qb)
     private function loopThroughRules(array $rules, \Illuminate\Database\Query\Builder $qb)
     {
         foreach ($rules as $rule) {
@@ -111,7 +110,6 @@ class QueryBuilderParser {
         }
     }
 
-    private function createNestedQuery($qb, $rule, $condition = null)
     private function createNestedQuery(\Illuminate\Database\Query\Builder $qb, stdClass $rule, $condition = null)
     {
         if ($condition == null)

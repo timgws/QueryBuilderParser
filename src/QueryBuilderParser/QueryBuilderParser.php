@@ -109,11 +109,20 @@ class QueryBuilderParser {
         }
     }
 
-    private function createNestedQuery($qb, $rule)
+    private function createNestedQuery($qb, $rule, $condition = null)
     {
-        return $qb->whereNested(function($query) use (&$rule, &$qb) {
+        if ($condition == null)
+            $condition = $rule->condition;
+
+        $condition = strtolower($condition);
+
+        return $qb->whereNested(function($query) use (&$rule, &$qb, &$condition) {
             foreach($rule->rules as $_rule) {
-                $qb = $this->makeQuery($query, $_rule);
+                if ($this->isNested($_rule)) {
+                    $qb = $this->createNestedQuery($query, $_rule, $rule->condition);
+                } else {
+                    $qb = $this->makeQuery($query, $_rule);
+                }
             }
 
         }, $rule->condition);

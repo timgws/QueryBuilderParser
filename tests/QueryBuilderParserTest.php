@@ -158,48 +158,49 @@ class QueryBuilderParserTest extends PHPUnit_Framework_TestCase
 
     public function testManyNestedQuery()
     {
+        // $('#builder-basic').queryBuilder('setRules', /** This object */);
         $json = '{
   "condition": "AND",
   "rules": [
     {
-      "id": "field1",
-      "field": "field1",
+        "id": "price",
+      "field": "price",
       "type": "double",
       "input": "text",
       "operator": "less",
       "value": "10.25"
     },
     {
-      "condition": "OR",
+        "condition": "AND",
       "rules": [
         {
-          "id": "field2",
-          "field": "field2",
+            "id": "category",
+          "field": "category",
           "type": "integer",
           "input": "select",
           "operator": "in",
           "value": [
             "1",
             "2"
-          ]
+        ]
         },
         {
-          "condition": "AND",
+            "condition": "OR",
           "rules": [
             {
-              "id": "field3",
-              "field": "field3",
+                "id": "name",
+              "field": "name",
               "type": "string",
               "input": "text",
               "operator": "equal",
               "value": "dgfssdfg"
             },
             {
-              "condition": "AND",
+                "condition": "AND",
               "rules": [
                 {
-                  "id": "field4",
-                  "field": "field4",
+                    "id": "name",
+                  "field": "name",
                   "type": "string",
                   "input": "text",
                   "operator": "equal",
@@ -219,7 +220,8 @@ class QueryBuilderParserTest extends PHPUnit_Framework_TestCase
 
         $qb->parse($json, $builder);
 
-        $this->assertEquals('/* This test currently fails. This should be fixed. */', $builder->toSql());
+        $this->assertEquals('select * where `price` < ? AND (`category` in (?, ?) OR (`name` = ? AND (`name` = ?)))', $builder->toSql());
+        //$this->assertEquals('/* This test currently fails. This should be fixed. */', $builder->toSql());
 
     }
 }

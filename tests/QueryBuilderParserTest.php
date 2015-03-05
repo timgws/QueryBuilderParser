@@ -156,4 +156,70 @@ class QueryBuilderParserTest extends PHPUnit_Framework_TestCase
         $this->assertEquals('select * where `price` < ? OR (`category` not in (?, ?))', $builder->toSql());
     }
 
+    public function testManyNestedQuery()
+    {
+        $json = '{
+  "condition": "AND",
+  "rules": [
+    {
+      "id": "field1",
+      "field": "field1",
+      "type": "double",
+      "input": "text",
+      "operator": "less",
+      "value": "10.25"
+    },
+    {
+      "condition": "OR",
+      "rules": [
+        {
+          "id": "field2",
+          "field": "field2",
+          "type": "integer",
+          "input": "select",
+          "operator": "in",
+          "value": [
+            "1",
+            "2"
+          ]
+        },
+        {
+          "condition": "AND",
+          "rules": [
+            {
+              "id": "field3",
+              "field": "field3",
+              "type": "string",
+              "input": "text",
+              "operator": "equal",
+              "value": "dgfssdfg"
+            },
+            {
+              "condition": "AND",
+              "rules": [
+                {
+                  "id": "field4",
+                  "field": "field4",
+                  "type": "string",
+                  "input": "text",
+                  "operator": "equal",
+                  "value": "sadf"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}';
+
+        $builder = $this->createQueryBuilder();
+        $qb = new QueryBuilderParser();
+
+        $qb->parse($json, $builder);
+
+        $this->assertEquals('/* This test currently fails. This should be fixed. */', $builder->toSql());
+
+    }
 }

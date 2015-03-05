@@ -55,7 +55,7 @@ class QueryBuilderParser {
 
     private $fields;
 
-    public function QueryBuilderParser(array $fields = null)
+    public function __construct(array $fields = null)
     {
         $this->fields = $fields;
     }

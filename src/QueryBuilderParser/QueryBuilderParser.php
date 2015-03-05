@@ -152,8 +152,13 @@ class QueryBuilderParser {
             throw new QBParseException("Field ({$rule->field}) should not be an array, but it is.");
         }
 
+
         if ($require_array) {
-            $query = $query->whereIn($rule->field, $_sql_op['operator'], $value);
+            if ($_sql_op['operator'] == 'IN') {
+                $query = $query->whereIn($rule->field, $value);
+            } elseif ($_sql_op['operator'] == 'NOT IN') {
+                $query = $query->whereNotIn($rule->field, $value);
+            }
         } else {
             $query = $query->where($rule->field, $_sql_op['operator'], $value);
         }

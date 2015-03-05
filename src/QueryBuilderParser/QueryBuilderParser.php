@@ -5,8 +5,6 @@ use \stdClass;
 
 class QueryBuilderParser {
 
-    private $currentRule;
-
     protected $operators = array (
         'equal'            => array ('accept_values' => true,  'apply_to' => ['string', 'number', 'datetime']),
         'not_equal'        => array ('accept_values' => true,  'apply_to' => ['string', 'number', 'datetime']),
@@ -88,8 +86,6 @@ class QueryBuilderParser {
     private function loopThroughRules(array $rules, \Illuminate\Database\Query\Builder $qb)
     {
         foreach ($rules as $rule) {
-            $this->currentRule = $rule;
-
             $qb = $this->makeQuery($qb, $rule);
 
             if ($this->isNested($rule)) {

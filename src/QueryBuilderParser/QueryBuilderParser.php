@@ -72,7 +72,7 @@ class QueryBuilderParser {
         }
 
         // This can happen if the querybuilder had no rules...
-        if (!isset($query->rules) or !is_array($query->rules)) {
+        if (!isset($query->rules) || !is_array($query->rules)) {
             return $qb;
         }
 

@@ -47,3 +47,10 @@ Mixed with Datatables, this makes for some true awesome.
         }
     }
 ```
+
+
+## Reporting Issues
+
+I use this code in a number of my projects, so if you do find an issue, please feel free to report it with [GitHub's bug tracker](https://github.com/timgws/QueryBuilderParser) for this project.
+
+Alternatively, fork the project and make a pull request :)

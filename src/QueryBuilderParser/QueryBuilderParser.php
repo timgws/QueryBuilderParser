@@ -3,6 +3,7 @@
 namespace timgws;
 use \stdClass;
 use timgws\QBParseException;
+use \Illuminate\Database\Query\Builder;
 
 class QueryBuilderParser {
 
@@ -15,6 +16,7 @@ class QueryBuilderParser {
         'less_or_equal'    => array ('accept_values' => true,  'apply_to' => ['number', 'datetime']),
         'greater'          => array ('accept_values' => true,  'apply_to' => ['number', 'datetime']),
         'greater_or_equal' => array ('accept_values' => true,  'apply_to' => ['number', 'datetime']),
+        'between'          => array ('accept_values' => true,  'apply_to' => ['number', 'datetime']),
         'begins_with'      => array ('accept_values' => true,  'apply_to' => ['string']),
         'not_begins_with'  => array ('accept_values' => true,  'apply_to' => ['string']),
         'contains'         => array ('accept_values' => true,  'apply_to' => ['string']),
@@ -36,6 +38,7 @@ class QueryBuilderParser {
         'less_or_equal'    => array ('operator' => '<='),
         'greater'          => array ('operator' => '>'),
         'greater_or_equal' => array ('operator' => '>='),
+        'between'          => array ('operator' => 'BETWEEN'),
         'begins_with'      => array ('operator' => 'LIKE',     'append'  => '%'),
         'not_begins_with'  => array ('operator' => 'NOT LIKE', 'append'  => '%'),
         'contains'         => array ('operator' => 'LIKE',     'append'  => '%', 'prepend' => '%'),
@@ -49,7 +52,7 @@ class QueryBuilderParser {
     );
 
     protected $needs_array = array (
-        'IN', 'NOT IN'
+        'IN', 'NOT IN', 'BETWEEN'
     );
 
     private $fields;
@@ -84,7 +87,15 @@ class QueryBuilderParser {
         return $this->loopThroughRules($query->rules, $qb);
     }
 
-    private function loopThroughRules(array $rules, \Illuminate\Database\Query\Builder $qb)
+    /**
+     * Called by parse, loops through all the rules to find out if nested or not.
+     *
+     * @param array $rules
+     * @param Builder $qb
+     * @return Builder
+     * @throws QBParseException
+     */
+    private function loopThroughRules(array $rules, Builder $qb)
     {
         foreach ($rules as $rule) {
             $qb = $this->makeQuery($qb, $rule);
@@ -106,7 +117,7 @@ class QueryBuilderParser {
         }
     }
 
-    private function createNestedQuery(\Illuminate\Database\Query\Builder $qb, stdClass $rule, $condition = null)
+    private function createNestedQuery(Builder $qb, stdClass $rule, $condition = null)
     {
         if ($condition === null)
             $condition = $rule->condition;
@@ -125,7 +136,7 @@ class QueryBuilderParser {
         }, $rule->condition);
     }
 
-    private function makeQuery(\Illuminate\Database\Query\Builder $query, stdClass $rule)
+    private function makeQuery(Builder $query, stdClass $rule)
     {
         /**
          * Make sure most of the common fields from the QueryBuilder have been added.
@@ -171,13 +182,25 @@ class QueryBuilderParser {
         }
 
         if ($require_array) {
-            if ($_sql_op['operator'] == 'IN') {
-                $query = $query->whereIn($rule->field, $value);
-            } elseif ($_sql_op['operator'] == 'NOT IN') {
-                $query = $query->whereNotIn($rule->field, $value);
-            }
+            $query = $this->makeQueryWhenArray($query, $rule, $_sql_op, $value);
         } else {
             $query = $query->where($rule->field, $_sql_op['operator'], $value);
+        }
+
+        return $query;
+    }
+
+    private function makeQueryWhenArray(Builder $query, stdClass $rule, array $_sql_op, $value)
+    {
+        if ($_sql_op['operator'] == 'IN') {
+            $query = $query->whereIn($rule->field, $value);
+        } elseif ($_sql_op['operator'] == 'NOT IN') {
+            $query = $query->whereNotIn($rule->field, $value);
+        } elseif ($_sql_op['operator'] == 'BETWEEN') {
+            if (count($value) == 2)
+                $query = $query->whereBetween($rule->field, $value);
+            else
+                throw new QBParseException("{$rule->field} should be an array with only two items.");
         }
 
         return $query;

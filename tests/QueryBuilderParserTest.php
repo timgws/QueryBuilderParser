@@ -46,7 +46,7 @@ class QueryBuilderParserTest extends PHPUnit_Framework_TestCase
   ]
 }';
 
-    protected function setUp() 
+    protected function setUp()
     {
     }
 
@@ -102,8 +102,9 @@ class QueryBuilderParserTest extends PHPUnit_Framework_TestCase
     {
 
         $operator = "not_in";
-        if ($is_in)
+        if ($is_in) {
             $operator = "in";
+        }
 
         return '{
         "condition": "AND",
@@ -124,7 +125,7 @@ class QueryBuilderParserTest extends PHPUnit_Framework_TestCase
                       "field": "category",
                       "type": "integer",
                       "input": "select",
-                      "operator": "' . $operator .'",
+                      "operator": "' . $operator . '",
                       "value": [
                         "1",
                         "2"
@@ -228,10 +229,47 @@ class QueryBuilderParserTest extends PHPUnit_Framework_TestCase
     /**
      * @expectedException \timgws\QBParseException
      */
-    public function testJSONParseException () {
+    public function testJSONParseException()
+    {
         $builder = $this->createQueryBuilder();
         $qb = new QueryBuilderParser();
 
         $qb->parse('{}]JSON', $builder);
+    }
+
+    private function getBetweenJSON($hasTwoValues = true)
+    {
+        $v = '"2","3"';
+
+        if (!$hasTwoValues)
+            $v .= ',"3"';
+
+        $json = '{"condition":"AND","rules":['
+            . '{"id":"price","field":"price","type":"double","input":"text",'
+            . '"operator":"between","value":[' . $v . ']}]}';
+
+        return $json;
+    }
+
+    public function testBetweenOperator()
+    {
+        $builder = $this->createQueryBuilder();
+        $qb = new QueryBuilderParser();
+
+        $qb->parse($this->getBetweenJSON(), $builder);
+        $this->assertEquals('select * where `price` between ? and ?', $builder->toSql());
+    }
+
+    /**
+     * This is a similar test to testBetweenOperator, however, this will throw an exception if
+     * there is more then two values for the 'BETWEEN' operator.
+     * @expectedException \timgws\QBParseException
+     */
+    public function testBetweenOperatorThrowsException()
+    {
+        $builder = $this->createQueryBuilder();
+        $qb = new QueryBuilderParser();
+
+        $qb->parse($this->getBetweenJSON(false), $builder);
     }
 }

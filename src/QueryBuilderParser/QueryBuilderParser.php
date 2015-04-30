@@ -197,10 +197,10 @@ class QueryBuilderParser {
         } elseif ($_sql_op['operator'] == 'NOT IN') {
             $query = $query->whereNotIn($rule->field, $value);
         } elseif ($_sql_op['operator'] == 'BETWEEN') {
-            if (count($value) == 2)
-                $query = $query->whereBetween($rule->field, $value);
-            else
+            if (count($value) !== 2)
                 throw new QBParseException("{$rule->field} should be an array with only two items.");
+
+            $query = $query->whereBetween($rule->field, $value);
         }
 
         return $query;

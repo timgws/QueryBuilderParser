@@ -153,12 +153,6 @@ class QueryBuilderParser {
         $value = $rule->value;
         $_sql_op = $this->operator_sql[$rule->operator];
 
-        if (isset($_sql_op['append']))
-            $value = $_sql_op['append'] . $value;
-
-        if (isset($_sql_op['prepend']))
-            $value = $value . $_sql_op['prepend'];
-
         /**
          * If the SQL Operator is set not to have a value, make sure that we set the value to null.
          */
@@ -180,6 +174,12 @@ class QueryBuilderParser {
         } elseif (!$require_array && is_array($value)) {
             throw new QBParseException("Field ({$rule->field}) should not be an array, but it is.");
         }
+
+        if (isset($_sql_op['append']))
+            $value = $_sql_op['append'] . $value;
+
+        if (isset($_sql_op['prepend']))
+            $value = $value . $_sql_op['prepend'];
 
         if ($require_array) {
             $query = $this->makeQueryWhenArray($query, $rule, $_sql_op, $value);

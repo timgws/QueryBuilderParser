@@ -57,11 +57,24 @@ class QueryBuilderParser {
 
     private $fields;
 
+    /**
+     * @param array $fields a list of all the fields that are allowed to be filtered by the QueryBuilder
+     */
     public function __construct(array $fields = null)
     {
         $this->fields = $fields;
     }
 
+    /**
+     * QueryBuilderParser's parse function!
+     *
+     * Build a query based on JSON that has been passed into the function, onto the builder passed into the function.
+     *
+     * @param $json
+     * @param Builder $qb
+     * @return Builder
+     * @throws QBParseException
+     */
     public function parse($json, \Illuminate\Database\Query\Builder $qb)
     {
         $query = json_decode($json);
@@ -98,6 +111,9 @@ class QueryBuilderParser {
     private function loopThroughRules(array $rules, Builder $qb)
     {
         foreach ($rules as $rule) {
+            /**
+             * If makeQuery does not see the correct fields, it will return the QueryBuilder without modifications
+             */
             $qb = $this->makeQuery($qb, $rule);
 
             if ($this->isNested($rule)) {
@@ -108,6 +124,12 @@ class QueryBuilderParser {
         return $qb;
     }
 
+    /**
+     * Determine if a particular rule is actually a group of other rules
+     *
+     * @param $rule
+     * @return bool
+     */
     private function isNested($rule)
     {
         if (isset($rule->rules)) {
@@ -117,6 +139,16 @@ class QueryBuilderParser {
         }
     }
 
+    /**
+     * Create nested queries
+     *
+     * When a rule is actually a group of rules, we want to build a nested query with the specified condition (AND/OR)
+     *
+     * @param Builder $qb
+     * @param stdClass $rule
+     * @param null $condition
+     * @return mixed
+     */
     private function createNestedQuery(Builder $qb, stdClass $rule, $condition = null)
     {
         if ($condition === null)
@@ -136,6 +168,19 @@ class QueryBuilderParser {
         }, $rule->condition);
     }
 
+    /**
+     * makeQuery: The money maker!
+     *
+     * Take a particular rule and make build something that the QueryBuilder would be proud of.
+     *
+     * Make sure that all the correct fields are in the rule object then add the expression to
+     * the query that was given by the user to the QueryBuilder.
+     *
+     * @param Builder $query
+     * @param stdClass $rule
+     * @return Builder
+     * @throws QBParseException
+     */
     private function makeQuery(Builder $query, stdClass $rule)
     {
         /**
@@ -190,6 +235,19 @@ class QueryBuilderParser {
         return $query;
     }
 
+    /**
+     * makeQuery, for arrays.
+     *
+     * Some types of SQL Operators (ie, those that deal with lists/arrays) have specific requirements.
+     * This function enforces those requirements.
+     *
+     * @param Builder $query
+     * @param stdClass $rule
+     * @param array $_sql_op
+     * @param $value
+     * @return Builder
+     * @throws QBParseException
+     */
     private function makeQueryWhenArray(Builder $query, stdClass $rule, array $_sql_op, $value)
     {
         if ($_sql_op['operator'] == 'IN') {

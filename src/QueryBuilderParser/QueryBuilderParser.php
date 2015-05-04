@@ -160,9 +160,9 @@ class QueryBuilderParser {
             $value = $value . $_sql_op['prepend'];
 
         /**
-         * Force the value to be null of the operator is null/not null...
+         * If the SQL Operator is set not to have a value, make sure that we set the value to null.
          */
-        if ($rule->operator == "is_null" || $rule->operator == "is_not_null")
+        if ($this->operators[$rule->operator]['accept_values'] === false)
             $value = null;
 
         if (is_array($this->fields) && !in_array($rule->field, $this->fields)) {

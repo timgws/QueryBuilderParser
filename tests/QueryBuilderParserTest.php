@@ -52,7 +52,7 @@ class QueryBuilderParserTest extends PHPUnit_Framework_TestCase
 
     private function createQueryBuilder()
     {
-        $pdo = new PDO('sqlite:example.db');
+        $pdo = new PDO('sqlite::memory:');
         $builder = new Builder(new Connection($pdo), new MySQLGrammar(), new MySQLProcessor());
 
         return $builder;

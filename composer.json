@@ -17,7 +17,7 @@
     },
     "minimum-stability": "dev",
     "require": {
-        "illuminate/database": "4.1-5.2"
+        "illuminate/database": "4.1 - 5.2"
     },
     "require-dev": {
         "phpunit/phpunit": "4.7.*@dev"

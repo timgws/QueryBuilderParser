@@ -2,7 +2,7 @@
 
 namespace timgws;
 use \stdClass;
-use timgws\QBParseException;
+use \timgws\QBParseException;
 use \Illuminate\Database\Query\Builder;
 
 class QueryBuilderParser {

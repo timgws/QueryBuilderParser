@@ -12,39 +12,39 @@ class QueryBuilderParserTest extends PHPUnit_Framework_TestCase
 {
     private $simpleQuery = '{"condition":"AND","rules":[{"id":"price","field":"price","type":"double","input":"text","operator":"less","value":"10.25"}]}';
     private $json1 = '{
-  "condition": "AND",
-  "rules": [
-    {
-      "id": "price",
-      "field": "price",
-      "type": "double",
-      "input": "text",
-      "operator": "less",
-      "value": "10.25"
-    },
-    {
-      "condition": "OR",
-      "rules": [
-        {
-          "id": "name",
-          "field": "name",
-          "type": "string",
-          "input": "text",
-          "operator": "begins_with",
-          "value": "Thommas"
-        },
-        {
-          "id": "name",
-          "field": "name",
-          "type": "string",
-          "input": "text",
-          "operator": "equal",
-          "value": "John Doe"
-        }
-      ]
-    }
-  ]
-}';
+       "condition":"AND",
+       "rules":[
+          {
+             "id":"price",
+             "field":"price",
+             "type":"double",
+             "input":"text",
+             "operator":"less",
+             "value":"10.25"
+          },
+          {
+             "condition":"OR",
+             "rules":[
+                {
+                   "id":"name",
+                   "field":"name",
+                   "type":"string",
+                   "input":"text",
+                   "operator":"begins_with",
+                   "value":"Thommas"
+                },
+                {
+                   "id":"name",
+                   "field":"name",
+                   "type":"string",
+                   "input":"text",
+                   "operator":"equal",
+                   "value":"John Doe"
+                }
+             ]
+          }
+       ]
+    }';
 
     protected function setUp()
     {
@@ -107,34 +107,32 @@ class QueryBuilderParserTest extends PHPUnit_Framework_TestCase
         }
 
         return '{
-        "condition": "AND",
-          "rules": [
-                {
-                    "id": "price",
-                  "field": "price",
-                  "type": "double",
-                  "input": "text",
-                  "operator": "less",
-                  "value": "10.25"
-                },
-                {
-                    "condition": "OR",
-                  "rules": [
-                    {
-                        "id": "category",
-                      "field": "category",
-                      "type": "integer",
-                      "input": "select",
-                      "operator": "' . $operator . '",
-                      "value": [
-                        "1",
-                        "2"
-                    ]
-                    }
-                  ]
-                }
-              ]
-            }';
+           "condition":"AND",
+           "rules":[
+              {
+                 "id":"price",
+                 "field":"price",
+                 "type":"double",
+                 "input":"text",
+                 "operator":"less",
+                 "value":"10.25"
+              },
+              {
+                 "condition":"OR",
+                 "rules":[{
+                   "id":"category",
+                   "field":"category",
+                   "type":"integer",
+                   "input":"select",
+                   "operator":"' . $operator . '",
+                   "value":[
+                      "1", "2"
+                   ]}
+                 ]
+              }
+           ]
+        }
+        ';
     }
 
     public function testCategoryIn()
@@ -161,60 +159,56 @@ class QueryBuilderParserTest extends PHPUnit_Framework_TestCase
     {
         // $('#builder-basic').queryBuilder('setRules', /** This object */);
         $json = '{
-  "condition": "AND",
-  "rules": [
-    {
-        "id": "price",
-      "field": "price",
-      "type": "double",
-      "input": "text",
-      "operator": "less",
-      "value": "10.25"
-    },
-    {
-        "condition": "AND",
-      "rules": [
-        {
-            "id": "category",
-          "field": "category",
-          "type": "integer",
-          "input": "select",
-          "operator": "in",
-          "value": [
-            "1",
-            "2"
-        ]
-        },
-        {
-            "condition": "OR",
-          "rules": [
-            {
-                "id": "name",
-              "field": "name",
-              "type": "string",
-              "input": "text",
-              "operator": "equal",
-              "value": "dgfssdfg"
-            },
-            {
-                "condition": "AND",
-              "rules": [
-                {
-                    "id": "name",
-                  "field": "name",
-                  "type": "string",
-                  "input": "text",
-                  "operator": "equal",
-                  "value": "sadf"
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    }
-  ]
-}';
+           "condition":"AND",
+           "rules":[
+              {
+                 "id":"price",
+                 "field":"price",
+                 "type":"double",
+                 "input":"text",
+                 "operator":"less",
+                 "value":"10.25"
+              }, {
+                 "condition":"AND",
+                 "rules":[
+                    {
+                       "id":"category",
+                       "field":"category",
+                       "type":"integer",
+                       "input":"select",
+                       "operator":"in",
+                       "value":[
+                          "1", "2"
+                       ]
+                    }, {
+                       "condition":"OR",
+                       "rules":[
+                          {
+                             "id":"name",
+                             "field":"name",
+                             "type":"string",
+                             "input":"text",
+                             "operator":"equal",
+                             "value":"dgfssdfg"
+                          }, {
+                             "condition":"AND",
+                             "rules":[
+                                {
+                                   "id":"name",
+                                   "field":"name",
+                                   "type":"string",
+                                   "input":"text",
+                                   "operator":"equal",
+                                   "value":"sadf"
+                                }
+                             ]
+                          }
+                       ]
+                    }
+                 ]
+              }
+           ]
+        }';
 
         $builder = $this->createQueryBuilder();
         $qb = new QueryBuilderParser();
@@ -239,10 +233,7 @@ class QueryBuilderParserTest extends PHPUnit_Framework_TestCase
 
     private function getBetweenJSON($hasTwoValues = true)
     {
-        $v = '"2","3"';
-
-        if (!$hasTwoValues)
-            $v .= ',"3"';
+        $v = '"2","3"' . ((!$hasTwoValues ? ',"3"' : ''));
 
         $json = '{"condition":"AND","rules":['
             . '{"id":"price","field":"price","type":"double","input":"text",'

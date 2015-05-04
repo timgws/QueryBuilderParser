@@ -154,7 +154,7 @@ class QueryBuilderParser {
         if ($condition === null)
             $condition = $rule->condition;
 
-        $condition = strtolower($condition);
+        $condition = $this->validateCondition($condition);
 
         return $qb->whereNested(function($query) use (&$rule, &$qb, &$condition) {
             foreach($rule->rules as $_rule) {
@@ -262,5 +262,20 @@ class QueryBuilderParser {
         }
 
         return $query;
+    }
+
+    /**
+     * Make sure that a condition is either 'or' or 'and'.
+     *
+     * @param $condition
+     * @return string
+     * @throws QBParseException
+     */
+    private function validateCondition($condition) {
+        $condition = trim(strtolower($condition));
+        if ($condition !== 'and' && $condition !== 'or')
+            throw new QBParseException("Condition can only be one of: 'and', 'or'.");
+
+        return $condition;
     }
 }

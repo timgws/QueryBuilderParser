@@ -201,8 +201,12 @@ class QueryBuilderParser {
         /**
          * If the SQL Operator is set not to have a value, make sure that we set the value to null.
          */
-        if ($this->operators[$rule->operator]['accept_values'] === false)
-            $value = null;
+        if ($this->operators[$rule->operator]['accept_values'] === false) {
+            if ($rule->operator == 'is_empty' || $rule->operator == 'is_not_empty')
+                $value = '';
+            else
+                $value = null;
+        }
 
         if (is_array($this->fields) && !in_array($rule->field, $this->fields)) {
             throw new QBParseException("Field ({$rule->field}) does not exist in fields list");

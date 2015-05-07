@@ -57,13 +57,7 @@ class QueryBuilderParserTest extends PHPUnit_Framework_TestCase
 
         return $builder;
     }
-    /**
-     * @covers QBP::construct
-     */
 
-    /**
-     * @covers QueryBuilderParser::parse
-     */
     public function testSimpleQuery()
     {
         $builder = $this->createQueryBuilder();
@@ -74,9 +68,6 @@ class QueryBuilderParserTest extends PHPUnit_Framework_TestCase
         $this->assertEquals('select * where `price` < ?', $builder->toSql());
     }
 
-    /**
-     * @covers QueryBuilderParser::parse
-     */
     public function testMoreComplexQuery()
     {
         $builder = $this->createQueryBuilder();
@@ -249,6 +240,66 @@ class QueryBuilderParserTest extends PHPUnit_Framework_TestCase
 
         $qb->parse($this->getBetweenJSON(), $builder);
         $this->assertEquals('select * where `price` between ? and ?', $builder->toSql());
+    }
+
+    private function noRulesOrEmptyRules($hasRules = false)
+    {
+        $builder = $this->createQueryBuilder();
+        $qb = new QueryBuilderParser();
+
+        $rules = '{"condition":"AND"}';
+        if ($hasRules)
+            $rules = '{"condition":"AND","rules":[]}';
+
+        $test = $qb->parse($rules, $builder);
+
+        $this->assertEquals('select *', $builder->toSql());
+    }
+
+    public function testNoRulesNoQuery() {
+        $this->noRulesOrEmptyRules(false);
+        $this->noRulesOrEmptyRules(true);
+    }
+
+    public function testValueBecomesNull() {
+        $v = '1.23';
+        $json = '{"condition":"AND","rules":['
+            . '{"id":"price","field":"price","type":"double","input":"text",'
+            . '"operator":"is_null","value":[' . $v . ']}]}';
+
+        $builder = $this->createQueryBuilder();
+        $qb = new QueryBuilderParser();
+        $test = $qb->parse($json, $builder);
+
+        $sqlBindings = $builder->getBindings();
+        $this->assertCount(1, $sqlBindings);
+        $this->assertEquals($sqlBindings[0], 'NULL');
+    }
+
+    /**
+     * @expectedException \timgws\QBParseException
+     * @expectedExceptionMessage Field (price) does not exist in fields list
+     */
+    public function testFieldNotInittedNotAllowed()
+    {
+        $builder = $this->createQueryBuilder();
+        $qb = new QueryBuilderParser(array('this_field_is_allowed_but_is_not_present_in_the_json_string'));
+        $test = $qb->parse($this->json1, $builder);
+    }
+
+    /**
+     * @expectedException \timgws\QBParseException
+     * @expectedExceptionMessage Field (price) should be an array, but it isn't.
+     */
+    public function testBetweenMustBeArray()
+    {
+        $json = '{"condition":"AND","rules":['
+            . '{"id":"price","field":"price","type":"double","input":"text",'
+            . '"operator":"between","value":"1"}]}';
+
+        $builder = $this->createQueryBuilder();
+        $qb = new QueryBuilderParser();
+        $test = $qb->parse($json, $builder);
     }
 
     /**

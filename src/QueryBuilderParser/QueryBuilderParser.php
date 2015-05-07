@@ -252,7 +252,9 @@ class QueryBuilderParser {
         if ($require_array && !is_array($value)) {
             throw new QBParseException("Field ({$rule->field}) should be an array, but it isn't.");
         } elseif (!$require_array && is_array($value)) {
-            throw new QBParseException("Field ({$rule->field}) should not be an array, but it is.");
+            if (count($value) !== 1)
+                throw new QBParseException("Field ({$rule->field}) should not be an array, but it is.");
+            $value = $value[0];
         }
 
         if (isset($_sql_op['append']))

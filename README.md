@@ -50,6 +50,8 @@ Mixed with Datatables, this makes for some true awesome.
     }
 ```
 
+## Known issues
+Some complex queries with QueryBuilder 2.1.0 are failing.
 
 ## Reporting Issues
 

@@ -291,15 +291,27 @@ class QueryBuilderParserTest extends PHPUnit_Framework_TestCase
      * @expectedException \timgws\QBParseException
      * @expectedExceptionMessage Field (price) should be an array, but it isn't.
      */
-    public function testBetweenMustBeArray()
+    public function testBetweenMustBeArray($validJSON = true)
     {
         $json = '{"condition":"AND","rules":['
             . '{"id":"price","field":"price","type":"double","input":"text",'
             . '"operator":"between","value":"1"}]}';
 
+        if (!$validJSON)
+            $json .= '[';
+
         $builder = $this->createQueryBuilder();
         $qb = new QueryBuilderParser();
         $test = $qb->parse($json, $builder);
+    }
+
+    /**
+     * @expectedException \timgws\QBParseException
+     * @expectedExceptionMessage JSON parsing threw an error
+     */
+    public function testThrowExceptionInvalidJSON()
+    {
+        $this->testBetweenMustBeArray(false /*invalid json*/);
     }
 
     /**

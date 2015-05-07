@@ -169,6 +169,46 @@ class QueryBuilderParser {
     }
 
     /**
+     * Check if a given rule is correct
+     *
+     * Just before making a query for a rule, we want to make sure that the field, operator and value are set
+     *
+     * @param stdClass $rule
+     * @return bool true if values are correct.
+     */
+    private function checkRuleCorrect(stdClass $rule)
+    {
+        if (!isset($rule->operator) || !isset($rule->id) || !isset($rule->field))
+            return false;
+
+        if (!isset($rule->input) || !isset($rule->type))
+            return false;
+
+        if (!isset($this->operators[$rule->operator]))
+            return false;
+
+        return true;
+    }
+
+    /**
+     * Give back the correct value when we don't accept one
+     *
+     * @param $rule
+     * @return null|string
+     */
+    private function operatorValueWhenNotAcceptingOne($rule)
+    {
+        if ($this->operators[$rule->operator]['accept_values'] === false) {
+            if ($rule->operator == 'is_empty' || $rule->operator == 'is_not_empty')
+                $value = '';
+            else
+                $value = null;
+        }
+
+        return $value;
+    }
+
+    /**
      * makeQuery: The money maker!
      *
      * Take a particular rule and make build something that the QueryBuilder would be proud of.
@@ -186,13 +226,7 @@ class QueryBuilderParser {
         /**
          * Make sure most of the common fields from the QueryBuilder have been added.
          */
-        if (!isset($rule->operator) || !isset($rule->id) || !isset($rule->field))
-            return $query;
-
-        if (!isset($rule->input) || !isset($rule->type))
-            return $query;
-
-        if (!isset($this->operators[$rule->operator]))
+        if (!$this->checkRuleCorrect($rule))
             return $query;
 
         $value = $rule->value;
@@ -202,10 +236,7 @@ class QueryBuilderParser {
          * If the SQL Operator is set not to have a value, make sure that we set the value to null.
          */
         if ($this->operators[$rule->operator]['accept_values'] === false) {
-            if ($rule->operator == 'is_empty' || $rule->operator == 'is_not_empty')
-                $value = '';
-            else
-                $value = null;
+            $value = $this->operatorValueWhenNotAcceptingOne($rule);
         }
 
         if (is_array($this->fields) && !in_array($rule->field, $this->fields)) {

@@ -71,11 +71,11 @@ class QueryBuilderParser {
      * Build a query based on JSON that has been passed into the function, onto the builder passed into the function.
      *
      * @param $json
-     * @param Builder $qb
+     * @param Builder $querybuilder
      * @return Builder
      * @throws QBParseException
      */
-    public function parse($json, \Illuminate\Database\Query\Builder $qb)
+    public function parse($json, \Illuminate\Database\Query\Builder $querybuilder)
     {
         $query = json_decode($json);
 
@@ -89,39 +89,39 @@ class QueryBuilderParser {
 
         // This can happen if the querybuilder had no rules...
         if (!isset($query->rules) || !is_array($query->rules)) {
-            return $qb;
+            return $querybuilder;
         }
 
         // This shouldn't ever cause an issue, but may as well not go through the rules.
         if (count($query->rules) < 1) {
-            return $qb;
+            return $querybuilder;
         }
 
-        return $this->loopThroughRules($query->rules, $qb);
+        return $this->loopThroughRules($query->rules, $querybuilder);
     }
 
     /**
      * Called by parse, loops through all the rules to find out if nested or not.
      *
      * @param array $rules
-     * @param Builder $qb
+     * @param Builder $querybuilder
      * @return Builder
      * @throws QBParseException
      */
-    private function loopThroughRules(array $rules, Builder $qb)
+    private function loopThroughRules(array $rules, Builder $querybuilder)
     {
         foreach ($rules as $rule) {
             /**
              * If makeQuery does not see the correct fields, it will return the QueryBuilder without modifications
              */
-            $qb = $this->makeQuery($qb, $rule);
+            $querybuilder = $this->makeQuery($querybuilder, $rule);
 
             if ($this->isNested($rule)) {
-                $qb = $this->createNestedQuery($qb, $rule);
+                $querybuilder = $this->createNestedQuery($querybuilder, $rule);
             }
         }
 
-        return $qb;
+        return $querybuilder;
     }
 
     /**
@@ -144,24 +144,24 @@ class QueryBuilderParser {
      *
      * When a rule is actually a group of rules, we want to build a nested query with the specified condition (AND/OR)
      *
-     * @param Builder $qb
+     * @param Builder $querybuilder
      * @param stdClass $rule
      * @param null $condition
      * @return mixed
      */
-    private function createNestedQuery(Builder $qb, stdClass $rule, $condition = null)
+    private function createNestedQuery(Builder $querybuilder, stdClass $rule, $condition = null)
     {
         if ($condition === null)
             $condition = $rule->condition;
 
         $condition = $this->validateCondition($condition);
 
-        return $qb->whereNested(function($query) use (&$rule, &$qb, &$condition) {
+        return $querybuilder->whereNested(function($query) use (&$rule, &$querybuilder, &$condition) {
             foreach($rule->rules as $_rule) {
                 if ($this->isNested($_rule)) {
-                    $qb = $this->createNestedQuery($query, $_rule, $rule->condition);
+                    $querybuilder = $this->createNestedQuery($query, $_rule, $rule->condition);
                 } else {
-                    $qb = $this->makeQuery($query, $_rule);
+                    $querybuilder = $this->makeQuery($query, $_rule);
                 }
             }
 

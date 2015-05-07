@@ -4,6 +4,8 @@ Status Label  | Status Value
 --------------|-------------
 Build | [![Build Status](https://travis-ci.org/timgws/QueryBuilderParser.svg?branch=master)](https://travis-ci.org/timgws/QueryBuilderParser)
 Insights | [![SensioLabsInsight](https://insight.sensiolabs.com/projects/70403e01-ad39-4117-bdef-d0c09c382555/mini.png?branch=master)](https://insight.sensiolabs.com/projects/70403e01-ad39-4117-bdef-d0c09c382555)
+Code Climate | [![Code Climate](https://codeclimate.com/github/timgws/QueryBuilderParser/badges/gpa.svg)](https://codeclimate.com/github/timgws/QueryBuilderParser)
+Test Coverage | [![Test Coverage](https://codeclimate.com/github/timgws/QueryBuilderParser/badges/coverage.svg)](https://codeclimate.com/github/timgws/QueryBuilderParser/coverage)
 
 **QueryBuilderParser** is designed mainly to be used inside Laravel projects, however it can be used outside Laravel
 projects by using Illuminate/Database.

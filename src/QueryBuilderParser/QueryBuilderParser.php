@@ -196,7 +196,7 @@ class QueryBuilderParser {
      * @param $rule
      * @return null|string
      */
-    private function operatorValueWhenNotAcceptingOne($rule)
+    private function operatorValueWhenNotAcceptingOne(stdClass $rule)
     {
         if ($this->operators[$rule->operator]['accept_values'] === false) {
             if ($rule->operator == 'is_empty' || $rule->operator == 'is_not_empty')

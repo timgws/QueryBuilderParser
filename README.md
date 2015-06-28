@@ -12,6 +12,7 @@ projects by using Illuminate/Database.
 
 A simple to use query builder for the [jQuery QueryBuilder plugin](http://mistic100.github.io/jQuery-QueryBuilder/).
 
+```php
     use timgws\QueryBuilderParser;
 
     $table = DB::table('table_of_data_to_interegate');
@@ -23,6 +24,7 @@ A simple to use query builder for the [jQuery QueryBuilder plugin](http://mistic
 
     $rows = $query->get();
     return Response::JSON($rows);
+```
 
 Mixed with Datatables, this makes for some true awesome.
 

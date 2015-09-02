@@ -55,7 +55,7 @@ class QueryBuilderParser {
         'IN', 'NOT IN', 'BETWEEN'
     );
 
-    private $fields;
+    protected $fields;
 
     /**
      * @param array $fields a list of all the fields that are allowed to be filtered by the QueryBuilder
@@ -108,7 +108,7 @@ class QueryBuilderParser {
      * @return Builder
      * @throws QBParseException
      */
-    private function loopThroughRules(array $rules, Builder $querybuilder)
+    protected function loopThroughRules(array $rules, Builder $querybuilder)
     {
         foreach ($rules as $rule) {
             /**
@@ -130,7 +130,7 @@ class QueryBuilderParser {
      * @param $rule
      * @return bool
      */
-    private function isNested($rule)
+    protected function isNested($rule)
     {
         if (isset($rule->rules)) {
             if (is_array($rule->rules) && count($rule->rules) > 0) {
@@ -149,7 +149,7 @@ class QueryBuilderParser {
      * @param null $condition
      * @return mixed
      */
-    private function createNestedQuery(Builder $querybuilder, stdClass $rule, $condition = null)
+    protected function createNestedQuery(Builder $querybuilder, stdClass $rule, $condition = null)
     {
         if ($condition === null)
             $condition = $rule->condition;
@@ -176,7 +176,7 @@ class QueryBuilderParser {
      * @param stdClass $rule
      * @return bool true if values are correct.
      */
-    private function checkRuleCorrect(stdClass $rule)
+    protected function checkRuleCorrect(stdClass $rule)
     {
         if (!isset($rule->operator) || !isset($rule->id) || !isset($rule->field))
             return false;
@@ -196,7 +196,7 @@ class QueryBuilderParser {
      * @param $rule
      * @return null|string
      */
-    private function operatorValueWhenNotAcceptingOne(stdClass $rule)
+    protected function operatorValueWhenNotAcceptingOne(stdClass $rule)
     {
         if ($this->operators[$rule->operator]['accept_values'] === false) {
             if ($rule->operator == 'is_empty' || $rule->operator == 'is_not_empty')
@@ -208,7 +208,7 @@ class QueryBuilderParser {
         return $value;
     }
 
-    private function operatorRequiresArray($operator)
+    protected function operatorRequiresArray($operator)
     {
         return in_array($operator, $this->needs_array);
     }
@@ -224,7 +224,7 @@ class QueryBuilderParser {
      * @return string
      * @throws QBParseException
      */
-    private function getCorrectValue($operator, stdClass $rule, $value)
+    protected function getCorrectValue($operator, stdClass $rule, $value)
     {
         $field = $rule->field;
         $_sql_op = $this->operator_sql[$rule->operator];
@@ -262,7 +262,7 @@ class QueryBuilderParser {
      * @return Builder
      * @throws QBParseException
      */
-    private function makeQuery(Builder $query, stdClass $rule)
+    protected function makeQuery(Builder $query, stdClass $rule)
     {
         /**
          * Make sure most of the common fields from the QueryBuilder have been added.
@@ -314,7 +314,7 @@ class QueryBuilderParser {
      * @return Builder
      * @throws QBParseException
      */
-    private function makeQueryWhenArray(Builder $query, stdClass $rule, array $_sql_op, $value)
+    protected function makeQueryWhenArray(Builder $query, stdClass $rule, array $_sql_op, $value)
     {
         if ($_sql_op['operator'] == 'IN') {
             $query = $query->whereIn($rule->field, $value);
@@ -337,7 +337,7 @@ class QueryBuilderParser {
      * @return string
      * @throws QBParseException
      */
-    private function validateCondition($condition) {
+    protected function validateCondition($condition) {
         $condition = trim(strtolower($condition));
         if ($condition !== 'and' && $condition !== 'or')
             throw new QBParseException("Condition can only be one of: 'and', 'or'.");

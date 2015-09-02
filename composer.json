@@ -13,7 +13,11 @@
         }
     ],
     "autoload": {
-        "psr-4": {"timgws\\": "src/QueryBuilderParser/"}
+        "psr-4": {
+          "timgws\\": "src/QueryBuilderParser/",
+          "timgws\\test\\": "tests/"
+        }
+
     },
     "minimum-stability": "dev",
     "require": {

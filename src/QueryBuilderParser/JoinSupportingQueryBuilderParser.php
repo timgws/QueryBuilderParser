@@ -18,7 +18,10 @@ class JoinSupportingQueryBuilderParser extends QueryBuilderParser{
      * - to_table         The name of the join table
      * - to_col           The column of the join table to use
      * - to_value_column  The column of the join table containing the value to use as a where clause
-     * - not_exists       Only return rows which do not exist in the subclause
+     * - not_exists*      Only return rows which do not exist in the subclause
+     * - clause*          An additional clause to add to the join condition, compatible with $query->where($clause)
+     * * optional field
+     *
      */
     public function __construct(array $fields = null, array $joinFields = null)
     {
@@ -88,6 +91,11 @@ class JoinSupportingQueryBuilderParser extends QueryBuilderParser{
                     . ' = '
                     . $subclause['from_table'] . '.'.$subclause['from_col']);
 
+                  if (array_key_exists('clause',$subclause))
+                  {
+                      $q->where($subclause['clause']);
+                  }
+
                   if ($subclause['require_array']) {
 
                       if ($subclause['operator'] == 'IN') {
@@ -100,6 +108,7 @@ class JoinSupportingQueryBuilderParser extends QueryBuilderParser{
                                 " should be an array with only two items.");
                           }
                           $q->whereBetween($subclause['to_value_column'], $subclause['value']);
+
                       }
                   } else {
                       $q->where($subclause['to_value_column'], $subclause['operator'], $subclause['value']);

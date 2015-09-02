@@ -35,7 +35,15 @@ class JoinSupportingQueryBuilderParserTest extends QueryBuilderParserTest
               'to_col' => 's2_col',
               'to_value_column' => 's2_value',
               'not_exists' => true
-            ]
+            ],
+          'joinwithclause' => [
+            'from_table' => 'master',
+            'from_col' => 'm_col',
+            'to_table' => 'subtable',
+            'to_col' => 's_col',
+            'to_value_column' => 's_value',
+            'clause' => ['othercol' => 'value']
+          ]
         ];
     }
 
@@ -118,7 +126,7 @@ class JoinSupportingQueryBuilderParserTest extends QueryBuilderParserTest
           $builder->toSql());
     }
 
-    public function testJoinBetweek()
+    public function testJoinBetween()
     {
         $json = '{"condition":"AND","rules":[{"id":"join1","field":"join1","type":"text","input":"select","operator":"between","value":["a","b"]}]}';
 
@@ -143,4 +151,18 @@ class JoinSupportingQueryBuilderParserTest extends QueryBuilderParserTest
         $this->assertEquals('select * where not exists (select `1` from `subtable2` where subtable2.s2_col = master2.m2_col and `s2_value` between ? and ?)',
           $builder->toSql());
     }
+
+    public function testJoinWithClause()
+    {
+        $json = '{"condition":"AND","rules":[{"id":"joinwithclause","field":"joinwithclause","type":"text","input":"select","operator":"in","value":["a","b"]}]}';
+
+        $builder = $this->createQueryBuilder();
+
+        $parser = $this->getParserUnderTest();
+        $test = $parser->parse($json, $builder);
+
+        $this->assertEquals('select * where exists (select `1` from `subtable` where subtable.s_col = master.m_col and (`othercol` = ?) and `s_value` in (?, ?))',
+          $builder->toSql());
+    }
+
 }

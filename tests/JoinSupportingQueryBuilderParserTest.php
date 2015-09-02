@@ -42,7 +42,7 @@ class JoinSupportingQueryBuilderParserTest extends QueryBuilderParserTest
             'to_table' => 'subtable',
             'to_col' => 's_col',
             'to_value_column' => 's_value',
-            'clause' => ['othercol' => 'value']
+            'to_clause' => ['othercol' => 'value']
           ]
         ];
     }

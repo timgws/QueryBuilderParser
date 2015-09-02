@@ -18,8 +18,9 @@ class JoinSupportingQueryBuilderParser extends QueryBuilderParser{
      * - to_table         The name of the join table
      * - to_col           The column of the join table to use
      * - to_value_column  The column of the join table containing the value to use as a where clause
+     * - to_clause*       An additional clause to add to the join condition, compatible with $query->where($clause)
      * - not_exists*      Only return rows which do not exist in the subclause
-     * - clause*          An additional clause to add to the join condition, compatible with $query->where($clause)
+     *
      * * optional field
      *
      */
@@ -91,9 +92,9 @@ class JoinSupportingQueryBuilderParser extends QueryBuilderParser{
                     . ' = '
                     . $subclause['from_table'] . '.'.$subclause['from_col']);
 
-                  if (array_key_exists('clause',$subclause))
+                  if (array_key_exists('to_clause',$subclause))
                   {
-                      $q->where($subclause['clause']);
+                      $q->where($subclause['to_clause']);
                   }
 
                   if ($subclause['require_array']) {

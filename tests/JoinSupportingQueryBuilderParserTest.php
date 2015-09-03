@@ -56,7 +56,7 @@ class JoinSupportingQueryBuilderParserTest extends QueryBuilderParserTest
         $parser = $this->getParserUnderTest();
         $test = $parser->parse($json, $builder);
 
-        $this->assertEquals('select * where exists (select `1` from `subtable` where subtable.s_col = master.m_col and `s_value` < ?)',
+        $this->assertEquals('select * where exists (select 1 from `subtable` where subtable.s_col = master.m_col and `s_value` < ?)',
           $builder->toSql());
     }
 
@@ -69,7 +69,7 @@ class JoinSupportingQueryBuilderParserTest extends QueryBuilderParserTest
         $parser = $this->getParserUnderTest();
         $test = $parser->parse($json, $builder);
 
-        $this->assertEquals('select * where not exists (select `1` from `subtable2` where subtable2.s2_col = master2.m2_col and `s2_value` < ?)',
+        $this->assertEquals('select * where not exists (select 1 from `subtable2` where subtable2.s2_col = master2.m2_col and `s2_value` < ?)',
           $builder->toSql());
     }
 
@@ -82,7 +82,7 @@ class JoinSupportingQueryBuilderParserTest extends QueryBuilderParserTest
         $parser = $this->getParserUnderTest();
         $test = $parser->parse($json, $builder);
 
-        $this->assertEquals('select * where exists (select `1` from `subtable` where subtable.s_col = master.m_col and `s_value` in (?, ?))',
+        $this->assertEquals('select * where exists (select 1 from `subtable` where subtable.s_col = master.m_col and `s_value` in (?, ?))',
           $builder->toSql());
     }
 
@@ -95,7 +95,7 @@ class JoinSupportingQueryBuilderParserTest extends QueryBuilderParserTest
         $parser = $this->getParserUnderTest();
         $test = $parser->parse($json, $builder);
 
-        $this->assertEquals('select * where not exists (select `1` from `subtable2` where subtable2.s2_col = master2.m2_col and `s2_value` in (?, ?))',
+        $this->assertEquals('select * where not exists (select 1 from `subtable2` where subtable2.s2_col = master2.m2_col and `s2_value` in (?, ?))',
           $builder->toSql());
     }
 
@@ -108,7 +108,7 @@ class JoinSupportingQueryBuilderParserTest extends QueryBuilderParserTest
         $parser = $this->getParserUnderTest();
         $test = $parser->parse($json, $builder);
 
-        $this->assertEquals('select * where exists (select `1` from `subtable` where subtable.s_col = master.m_col and `s_value` not in (?, ?))',
+        $this->assertEquals('select * where exists (select 1 from `subtable` where subtable.s_col = master.m_col and `s_value` not in (?, ?))',
           $builder->toSql());
     }
 
@@ -122,7 +122,7 @@ class JoinSupportingQueryBuilderParserTest extends QueryBuilderParserTest
         $parser = $this->getParserUnderTest();
         $test = $parser->parse($json, $builder);
 
-        $this->assertEquals('select * where not exists (select `1` from `subtable2` where subtable2.s2_col = master2.m2_col and `s2_value` not in (?, ?))',
+        $this->assertEquals('select * where not exists (select 1 from `subtable2` where subtable2.s2_col = master2.m2_col and `s2_value` not in (?, ?))',
           $builder->toSql());
     }
 
@@ -135,7 +135,7 @@ class JoinSupportingQueryBuilderParserTest extends QueryBuilderParserTest
         $parser = $this->getParserUnderTest();
         $test = $parser->parse($json, $builder);
 
-        $this->assertEquals('select * where exists (select `1` from `subtable` where subtable.s_col = master.m_col and `s_value` between ? and ?)',
+        $this->assertEquals('select * where exists (select 1 from `subtable` where subtable.s_col = master.m_col and `s_value` between ? and ?)',
           $builder->toSql());
     }
 
@@ -148,7 +148,7 @@ class JoinSupportingQueryBuilderParserTest extends QueryBuilderParserTest
         $parser = $this->getParserUnderTest();
         $test = $parser->parse($json, $builder);
 
-        $this->assertEquals('select * where not exists (select `1` from `subtable2` where subtable2.s2_col = master2.m2_col and `s2_value` between ? and ?)',
+        $this->assertEquals('select * where not exists (select 1 from `subtable2` where subtable2.s2_col = master2.m2_col and `s2_value` between ? and ?)',
           $builder->toSql());
     }
 
@@ -161,7 +161,7 @@ class JoinSupportingQueryBuilderParserTest extends QueryBuilderParserTest
         $parser = $this->getParserUnderTest();
         $test = $parser->parse($json, $builder);
 
-        $this->assertEquals('select * where exists (select `1` from `subtable` where subtable.s_col = master.m_col and (`othercol` = ?) and `s_value` in (?, ?))',
+        $this->assertEquals('select * where exists (select 1 from `subtable` where subtable.s_col = master.m_col and (`othercol` = ?) and `s_value` in (?, ?))',
           $builder->toSql());
     }
 

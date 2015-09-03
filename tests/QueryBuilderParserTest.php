@@ -1,5 +1,7 @@
 <?php
 
+namespace timgws\test;
+
 use timgws\QueryBuilderParser;
 use Illuminate\Database\Capsule\Manager as Capsule;
 use Illuminate\Database\Query\Builder;
@@ -8,7 +10,7 @@ use Illuminate\Database\Connectors\MySqlConnector as MySQL;
 use Illuminate\Database\Query\Grammars\MySqlGrammar as MySQLGrammar;
 use Illuminate\Database\Query\Processors\MySqlProcessor as MySQLProcessor;
 
-class QueryBuilderParserTest extends PHPUnit_Framework_TestCase
+class QueryBuilderParserTest extends \PHPUnit_Framework_TestCase
 {
     private $simpleQuery = '{"condition":"AND","rules":[{"id":"price","field":"price","type":"double","input":"text","operator":"less","value":"10.25"}]}';
     private $json1 = '{
@@ -50,9 +52,14 @@ class QueryBuilderParserTest extends PHPUnit_Framework_TestCase
     {
     }
 
-    private function createQueryBuilder()
+    protected function getParserUnderTest($fields = null)
     {
-        $pdo = new PDO('sqlite::memory:');
+        return new QueryBuilderParser($fields);
+    }
+
+    protected function createQueryBuilder()
+    {
+        $pdo = new \PDO('sqlite::memory:');
         $builder = new Builder(new Connection($pdo), new MySQLGrammar(), new MySQLProcessor());
 
         return $builder;
@@ -61,7 +68,7 @@ class QueryBuilderParserTest extends PHPUnit_Framework_TestCase
     public function testSimpleQuery()
     {
         $builder = $this->createQueryBuilder();
-        $qb = new QueryBuilderParser();
+        $qb = $this->getParserUnderTest();
 
         $test = $qb->parse($this->simpleQuery, $builder);
 
@@ -71,7 +78,7 @@ class QueryBuilderParserTest extends PHPUnit_Framework_TestCase
     public function testMoreComplexQuery()
     {
         $builder = $this->createQueryBuilder();
-        $qb = new QueryBuilderParser();
+        $qb =  $this->getParserUnderTest();
 
         $test = $qb->parse($this->json1, $builder);
 
@@ -81,7 +88,7 @@ class QueryBuilderParserTest extends PHPUnit_Framework_TestCase
     public function testBetterThenTheLastTime()
     {
         $builder = $this->createQueryBuilder();
-        $qb = new QueryBuilderParser();
+        $qb =  $this->getParserUnderTest();
 
         $json = '{"condition":"AND","rules":[{"id":"anchor_text","field":"anchor_text","type":"string","input":"text","operator":"contains","value":"www"},{"condition":"OR","rules":[{"id":"citation_flow","field":"citation_flow","type":"double","input":"text","operator":"greater_or_equal","value":"30"},{"id":"trust_flow","field":"trust_flow","type":"double","input":"text","operator":"greater_or_equal","value":"30"}]}]}';
         $test = $qb->parse($json, $builder);
@@ -129,7 +136,7 @@ class QueryBuilderParserTest extends PHPUnit_Framework_TestCase
     public function testCategoryIn()
     {
         $builder = $this->createQueryBuilder();
-        $qb = new QueryBuilderParser();
+        $qb = $this->getParserUnderTest();
 
         $qb->parse($this->makeJSONForInNotInTest(), $builder);
 
@@ -139,7 +146,7 @@ class QueryBuilderParserTest extends PHPUnit_Framework_TestCase
     public function testCategoryNotIn()
     {
         $builder = $this->createQueryBuilder();
-        $qb = new QueryBuilderParser();
+        $qb = $this->getParserUnderTest();
 
         $qb->parse($this->makeJSONForInNotInTest(false), $builder);
 
@@ -202,7 +209,7 @@ class QueryBuilderParserTest extends PHPUnit_Framework_TestCase
         }';
 
         $builder = $this->createQueryBuilder();
-        $qb = new QueryBuilderParser();
+        $qb = $this->getParserUnderTest();
 
         $qb->parse($json, $builder);
 
@@ -217,7 +224,7 @@ class QueryBuilderParserTest extends PHPUnit_Framework_TestCase
     public function testJSONParseException()
     {
         $builder = $this->createQueryBuilder();
-        $qb = new QueryBuilderParser();
+        $qb = $this->getParserUnderTest();
 
         $qb->parse('{}]JSON', $builder);
     }
@@ -236,7 +243,7 @@ class QueryBuilderParserTest extends PHPUnit_Framework_TestCase
     public function testBetweenOperator()
     {
         $builder = $this->createQueryBuilder();
-        $qb = new QueryBuilderParser();
+        $qb = $this->getParserUnderTest();
 
         $qb->parse($this->getBetweenJSON(), $builder);
         $this->assertEquals('select * where `price` between ? and ?', $builder->toSql());
@@ -245,7 +252,7 @@ class QueryBuilderParserTest extends PHPUnit_Framework_TestCase
     private function noRulesOrEmptyRules($hasRules = false)
     {
         $builder = $this->createQueryBuilder();
-        $qb = new QueryBuilderParser();
+        $qb = $this->getParserUnderTest();
 
         $rules = '{"condition":"AND"}';
         if ($hasRules)
@@ -268,7 +275,7 @@ class QueryBuilderParserTest extends PHPUnit_Framework_TestCase
             . '"operator":"is_null","value":[' . $v . ']}]}';
 
         $builder = $this->createQueryBuilder();
-        $qb = new QueryBuilderParser();
+        $qb = $this->getParserUnderTest();
         $test = $qb->parse($json, $builder);
 
         $sqlBindings = $builder->getBindings();
@@ -283,7 +290,7 @@ class QueryBuilderParserTest extends PHPUnit_Framework_TestCase
     public function testFieldNotInittedNotAllowed()
     {
         $builder = $this->createQueryBuilder();
-        $qb = new QueryBuilderParser(array('this_field_is_allowed_but_is_not_present_in_the_json_string'));
+        $qb = $this->getParserUnderTest(array('this_field_is_allowed_but_is_not_present_in_the_json_string'));
         $test = $qb->parse($this->json1, $builder);
     }
 
@@ -301,7 +308,7 @@ class QueryBuilderParserTest extends PHPUnit_Framework_TestCase
             $json .= '[';
 
         $builder = $this->createQueryBuilder();
-        $qb = new QueryBuilderParser();
+        $qb = $this->getParserUnderTest();
         $test = $qb->parse($json, $builder);
     }
 
@@ -322,7 +329,7 @@ class QueryBuilderParserTest extends PHPUnit_Framework_TestCase
     public function testBetweenOperatorThrowsException()
     {
         $builder = $this->createQueryBuilder();
-        $qb = new QueryBuilderParser();
+        $qb = $this->getParserUnderTest();
 
         $qb->parse($this->getBetweenJSON(false), $builder);
     }

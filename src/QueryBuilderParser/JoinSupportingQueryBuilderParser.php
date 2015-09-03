@@ -86,7 +86,7 @@ class JoinSupportingQueryBuilderParser extends QueryBuilderParser{
             $query = $query->whereExists(
               function ($query) use ($subclause) {
 
-                $q = $query->select('1')
+                $q = $query->selectRaw(1)
                   ->from($subclause['to_table'])
                   ->whereRaw($subclause['to_table'].'.'.$subclause['to_col']
                     . ' = '

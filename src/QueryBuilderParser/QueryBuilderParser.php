@@ -75,7 +75,7 @@ class QueryBuilderParser {
      * @return Builder
      * @throws QBParseException
      */
-    public function parse($json, \Illuminate\Database\Query\Builder $querybuilder)
+    public function parse($json, Builder $querybuilder)
     {
         $query = json_decode($json);
 
@@ -103,15 +103,16 @@ class QueryBuilderParser {
     /**
      * Called by parse, loops through all the rules to find out if nested or not.
      *
-     * @param array $rules
+     * @param array   $rules
      * @param Builder $querybuilder
-     * @return Builder
      * @throws QBParseException
+     *
+     * @return Builder
      */
     protected function loopThroughRules(array $rules, Builder $querybuilder)
     {
         foreach ($rules as $rule) {
-            /**
+            /*
              * If makeQuery does not see the correct fields, it will return the QueryBuilder without modifications
              */
             $querybuilder = $this->makeQuery($querybuilder, $rule);
@@ -208,6 +209,12 @@ class QueryBuilderParser {
         return $value;
     }
 
+    /**
+     * Determine if an operator (LIKE/IN) requires an array
+     *
+     * @param $operator
+     * @return bool
+     */
     protected function operatorRequiresArray($operator)
     {
         return in_array($operator, $this->needs_array);
@@ -299,7 +306,7 @@ class QueryBuilderParser {
      */
     protected function getValueForQueryFromRule($rule)
     {
-        /**
+        /*
          * Make sure most of the common fields from the QueryBuilder have been added.
          */
         if (!$this->checkRuleCorrect($rule))
@@ -307,28 +314,28 @@ class QueryBuilderParser {
 
         $value = $rule->value;
 
-        /**
+        /*
          * The field must exist in our list.
          */
         if (is_array($this->fields) && !in_array($rule->field, $this->fields)) {
             throw new QBParseException("Field ({$rule->field}) does not exist in fields list");
         }
 
-        /**
+        /*
          * If the SQL Operator is set not to have a value, make sure that we set the value to null.
          */
         if ($this->operators[$rule->operator]['accept_values'] === false) {
             return $this->operatorValueWhenNotAcceptingOne($rule);
         }
 
-        /**
+        /*
          * Convert the Operator (LIKE/NOT LIKE/GREATER THAN) given to us by QueryBuilder
          * into on one that we can use inside the SQL query
          */
         $_sql_op = $this->operator_sql[$rule->operator];
         $operator = $_sql_op['operator'];
 
-        /**
+        /*
          * \o/ Ensure that the value is an array only if it should be.
          */
         $value = $this->getCorrectValue($operator, $rule, $value);

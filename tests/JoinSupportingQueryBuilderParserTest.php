@@ -9,13 +9,13 @@ use Illuminate\Database\Connection as Connection;
 use Illuminate\Database\Connectors\MySqlConnector as MySQL;
 use Illuminate\Database\Query\Grammars\MySqlGrammar as MySQLGrammar;
 use Illuminate\Database\Query\Processors\MySqlProcessor as MySQLProcessor;
+use timgws\JoinSupportingQueryBuilderParser;
 
-class JoinSupportingQueryBuilderParserTest extends QueryBuilderParserTest
+class JoinSupportingQueryBuilderParserTest extends CommonQueryBuilderTests
 {
     protected function getParserUnderTest($fields = null)
     {
-
-        return new \timgws\JoinSupportingQueryBuilderParser($fields, $this->getJoinFields());
+        return new JoinSupportingQueryBuilderParser($fields, $this->getJoinFields());
     }
 
     private function getJoinFields()
@@ -149,7 +149,43 @@ class JoinSupportingQueryBuilderParserTest extends QueryBuilderParserTest
         $test = $parser->parse($json, $builder);
 
         $this->assertEquals('select * where not exists (select 1 from `subtable2` where subtable2.s2_col = master2.m2_col and `s2_value` between ? and ?)',
-          $builder->toSql());
+            $builder->toSql());
+    }
+
+    /**
+     * @expectedException timgws\QBParseException
+     * @expectedExceptionMessage s2_value should be an array with only two items.
+     * @throws \timgws\QBParseException
+     */
+    public function testJoinNotExistsBetweenWithThreeItems()
+    {
+        $json = '{"condition":"AND","rules":[{"id":"join2","field":"join2","type":"text","input":"select","operator":"between","value":["a","b","c"]}]}';
+
+        $builder = $this->createQueryBuilder();
+
+        $parser = $this->getParserUnderTest();
+        $test = $parser->parse($json, $builder);
+
+        $this->assertEquals('select * where not exists (select 1 from `subtable2` where subtable2.s2_col = master2.m2_col and `s2_value` between ? and ?)',
+            $builder->toSql());
+    }
+
+    /**
+     * @expectedException timgws\QBParseException
+     * @expectedExceptionMessage Field (join4) does not exist in fields list
+     * @throws \timgws\QBParseException
+     */
+    public function testJoinNotExistsBetweenWithFieldThatDoesNotExist()
+    {
+        $json = '{"condition":"AND","rules":[{"id":"join4","field":"join4","type":"text","input":"select","operator":"between","value":["a","b","c"]}]}';
+
+        $builder = $this->createQueryBuilder();
+
+        $parser = $this->getParserUnderTest(array('this_field_is_allowed_but_is_not_present_in_the_json_string'));
+        $test = $parser->parse($json, $builder);
+
+        $this->assertEquals('select * where not exists (select 1 from `subtable2` where subtable2.s2_col = master2.m2_col and `s2_value` between ? and ?)',
+            $builder->toSql());
     }
 
     public function testJoinWithClause()
@@ -165,4 +201,13 @@ class JoinSupportingQueryBuilderParserTest extends QueryBuilderParserTest
           $builder->toSql());
     }
 
+    public function testCategoryIn()
+    {
+        $builder = $this->createQueryBuilder();
+        $qb = $this->getParserUnderTest();
+
+        $qb->parse($this->makeJSONForInNotInTest(), $builder);
+
+        $this->assertEquals('select * where `price` < ? OR (`category` in (?, ?))', $builder->toSql());
+    }
 }

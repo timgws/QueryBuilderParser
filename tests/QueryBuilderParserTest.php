@@ -246,8 +246,11 @@ class QueryBuilderParserTest extends CommonQueryBuilderTests
     }
 
     /**
-     * This is a similar test to testBetweenOperator, however, this will throw an exception if
-     * there is more then two values for the 'BETWEEN' operator.
+     * QBP can only accept objects, not arrays.
+     *
+     * Make sure an exception is thrown if the JSON is valid, but after parsing,
+     * we don't get back an object
+     *
      * @expectedException \timgws\QBParseException
      */
     public function testArrayDoesNotParse()
@@ -258,6 +261,10 @@ class QueryBuilderParserTest extends CommonQueryBuilderTests
         $qb->parse('["test1","test2"]', $builder);
     }
 
+    /**
+     * Just a quick test to make sure that QBP::isNested returns false when
+     * there is no nested rules inside the rules...
+     */
     public function testIsNestedReturnsFalseWhenEmptyNestedRules()
     {
         $some_json_input = '{

@@ -58,55 +58,17 @@ class JoinSupportingQueryBuilderParser extends QueryBuilderParser
             return $query;
         }
 
-        /**
-         * Convert the Operator (LIKE/NOT LIKE/GREATER THAN) given to us by QueryBuilder
-         * into on one that we can use inside the SQL query
-         */
-        $_sql_op = $this->operator_sql[$rule->operator];
-        $operator = $_sql_op['operator'];
-
-        $require_array = $this->operatorRequiresArray($operator);
-
         if (is_array($this->joinFields) && array_key_exists($rule->field, $this->joinFields)) {
-            $subclause = $this->joinFields[$rule->field];
-            $subclause['operator'] = $operator;
-            $subclause['value'] = $value;
-            $subclause['require_array'] = $require_array;
-
-            $not = array_key_exists('not_exists', $subclause) && $subclause['not_exists'];
-
-            // Create a where exists clause to join to the other table, and find results matching the criteria
-            $query = $query->whereExists(
-                function ($query) use ($subclause) {
-
-                    $q = $query->selectRaw(1)
-                        ->from($subclause['to_table'])
-                        ->whereRaw($subclause['to_table'] . '.' . $subclause['to_col']
-                            . ' = '
-                            . $subclause['from_table'] . '.' . $subclause['from_col']);
-
-                    if (array_key_exists('to_clause', $subclause)) {
-                        $q->where($subclause['to_clause']);
-                    }
-
-                    if ($subclause['require_array']) {
-                        if ($subclause['operator'] == 'IN') {
-                            $q->whereIn($subclause['to_value_column'], $subclause['value']);
-                        } elseif ($subclause['operator'] == 'NOT IN') {
-                            $q->whereNotIn($subclause['to_value_column'], $subclause['value']);
-                        } elseif ($subclause['operator'] == 'BETWEEN') {
-                            if (count($subclause['value']) !== 2) {
-                                throw new QBParseException($subclause['to_value_column'] .
-                                    " should be an array with only two items.");
-                            }
-                            $q->whereBetween($subclause['to_value_column'], $subclause['value']);
-
-                        }
-                    } else {
-                        $q->where($subclause['to_value_column'], $subclause['operator'], $subclause['value']);
-                    }
-                }, 'and', $not);
+            $query = $this->buildSubclauseQuery($query, $rule, $value);
         } else {
+            /**
+             * Convert the Operator (LIKE/NOT LIKE/GREATER THAN) given to us by QueryBuilder
+             * into on one that we can use inside the SQL query
+             */
+            $_sql_op = $this->operator_sql[$rule->operator];
+            $operator = $_sql_op['operator'];
+            $require_array = $this->operatorRequiresArray($operator);
+
             if ($require_array) {
                 $query = $this->makeQueryWhenArray($query, $rule, $_sql_op, $value);
             } else {
@@ -117,4 +79,56 @@ class JoinSupportingQueryBuilderParser extends QueryBuilderParser
         return $query;
     }
 
+    private function buildSubclauseQuery($query, $rule, $value)
+    {
+        /*
+         * Convert the Operator (LIKE/NOT LIKE/GREATER THAN) given to us by QueryBuilder
+         * into on one that we can use inside the SQL query
+         */
+        $_sql_op = $this->operator_sql[$rule->operator];
+        $operator = $_sql_op['operator'];
+        $require_array = $this->operatorRequiresArray($operator);
+
+        $subclause = $this->joinFields[$rule->field];
+        $subclause['operator'] = $operator;
+        $subclause['value'] = $value;
+        $subclause['require_array'] = $require_array;
+
+        $not = array_key_exists('not_exists', $subclause) && $subclause['not_exists'];
+
+        // Create a where exists clause to join to the other table, and find results matching the criteria
+        $query = $query->whereExists(
+            function (Builder $query) use ($subclause) {
+
+                $q = $query->selectRaw(1)
+                    ->from($subclause['to_table'])
+                    ->whereRaw($subclause['to_table'] . '.' . $subclause['to_col']
+                        . ' = '
+                        . $subclause['from_table'] . '.' . $subclause['from_col']);
+
+                if (array_key_exists('to_clause', $subclause)) {
+                    $q->where($subclause['to_clause']);
+                }
+
+                if ($subclause['require_array']) {
+                    if ($subclause['operator'] == 'IN') {
+                        $q->whereIn($subclause['to_value_column'], $subclause['value']);
+                    } elseif ($subclause['operator'] == 'NOT IN') {
+                        $q->whereNotIn($subclause['to_value_column'], $subclause['value']);
+                    } elseif ($subclause['operator'] == 'BETWEEN') {
+                        if (count($subclause['value']) !== 2) {
+                            throw new QBParseException($subclause['to_value_column'] .
+                                " should be an array with only two items.");
+                        }
+
+                        $q->whereBetween($subclause['to_value_column'], $subclause['value']);
+                    }
+                } else {
+                    $q->where($subclause['to_value_column'], $subclause['operator'], $subclause['value']);
+                }
+            }, 'and', $not);
+
+        return $query;
+
+    }
 }

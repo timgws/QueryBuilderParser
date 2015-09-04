@@ -10,60 +10,8 @@ use Illuminate\Database\Connectors\MySqlConnector as MySQL;
 use Illuminate\Database\Query\Grammars\MySqlGrammar as MySQLGrammar;
 use Illuminate\Database\Query\Processors\MySqlProcessor as MySQLProcessor;
 
-class QueryBuilderParserTest extends \PHPUnit_Framework_TestCase
+class QueryBuilderParserTest extends CommonQueryBuilderTests
 {
-    private $simpleQuery = '{"condition":"AND","rules":[{"id":"price","field":"price","type":"double","input":"text","operator":"less","value":"10.25"}]}';
-    private $json1 = '{
-       "condition":"AND",
-       "rules":[
-          {
-             "id":"price",
-             "field":"price",
-             "type":"double",
-             "input":"text",
-             "operator":"less",
-             "value":"10.25"
-          },
-          {
-             "condition":"OR",
-             "rules":[
-                {
-                   "id":"name",
-                   "field":"name",
-                   "type":"string",
-                   "input":"text",
-                   "operator":"begins_with",
-                   "value":"Thommas"
-                },
-                {
-                   "id":"name",
-                   "field":"name",
-                   "type":"string",
-                   "input":"text",
-                   "operator":"equal",
-                   "value":"John Doe"
-                }
-             ]
-          }
-       ]
-    }';
-
-    protected function setUp()
-    {
-    }
-
-    protected function getParserUnderTest($fields = null)
-    {
-        return new QueryBuilderParser($fields);
-    }
-
-    protected function createQueryBuilder()
-    {
-        $pdo = new \PDO('sqlite::memory:');
-        $builder = new Builder(new Connection($pdo), new MySQLGrammar(), new MySQLProcessor());
-
-        return $builder;
-    }
 
     public function testSimpleQuery()
     {
@@ -94,43 +42,6 @@ class QueryBuilderParserTest extends \PHPUnit_Framework_TestCase
         $test = $qb->parse($json, $builder);
 
         $this->assertEquals('select * where `anchor_text` LIKE ? OR (`citation_flow` >= ? and `trust_flow` >= ?)', $builder->toSql());
-    }
-
-    private function makeJSONForInNotInTest($is_in = true)
-    {
-
-        $operator = "not_in";
-        if ($is_in) {
-            $operator = "in";
-        }
-
-        return '{
-           "condition":"AND",
-           "rules":[
-              {
-                 "id":"price",
-                 "field":"price",
-                 "type":"double",
-                 "input":"text",
-                 "operator":"less",
-                 "value":"10.25"
-              },
-              {
-                 "condition":"OR",
-                 "rules":[{
-                   "id":"category",
-                   "field":"category",
-                   "type":"integer",
-                   "input":"select",
-                   "operator":"' . $operator . '",
-                   "value":[
-                      "1", "2"
-                   ]}
-                 ]
-              }
-           ]
-        }
-        ';
     }
 
     public function testCategoryIn()
@@ -332,5 +243,36 @@ class QueryBuilderParserTest extends \PHPUnit_Framework_TestCase
         $qb = $this->getParserUnderTest();
 
         $qb->parse($this->getBetweenJSON(false), $builder);
+    }
+
+    /**
+     * This is a similar test to testBetweenOperator, however, this will throw an exception if
+     * there is more then two values for the 'BETWEEN' operator.
+     * @expectedException \timgws\QBParseException
+     */
+    public function testArrayDoesNotParse()
+    {
+        $builder = $this->createQueryBuilder();
+        $qb = $this->getParserUnderTest();
+
+        $qb->parse('["test1","test2"]', $builder);
+    }
+
+    public function testIsNestedReturnsFalseWhenEmptyNestedRules()
+    {
+        $some_json_input = '{
+       "condition":"AND",
+       "rules":[{
+             "condition":"OR",
+             "rules":[]
+          }]}';
+
+
+        $builder = $this->createQueryBuilder();
+        $qb = $this->getParserUnderTest();
+
+        $qb->parse($some_json_input, $builder);
+
+        //fwrite(STDERR, $builder->toSql());
     }
 }

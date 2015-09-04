@@ -80,7 +80,7 @@ class QueryBuilderParser {
         $query = json_decode($json);
 
         if ($error = json_last_error()) {
-            throw new QBParseException('JSON parsing threw an error: ' . $error);
+            throw new QBParseException('JSON parsing threw an error: ' . json_last_error_msg());
         }
 
         if (!is_object($query)) {
@@ -132,11 +132,11 @@ class QueryBuilderParser {
      */
     protected function isNested($rule)
     {
-        if (isset($rule->rules)) {
-            if (is_array($rule->rules) && count($rule->rules) > 0) {
-                return true;
-            }
+        if (isset($rule->rules) && is_array($rule->rules) && count($rule->rules) > 0) {
+            return true;
         }
+
+        return false;
     }
 
     /**
@@ -265,40 +265,75 @@ class QueryBuilderParser {
     protected function makeQuery(Builder $query, stdClass $rule)
     {
         /**
-         * Make sure most of the common fields from the QueryBuilder have been added.
+         * Ensure that the value is correct for the rule, return query on exception
          */
-        if (!$this->checkRuleCorrect($rule))
+        try {
+            $value = $this->getValueForQueryFromRule($rule);
+        } catch (QBRuleException $e) {
             return $query;
+        }
 
-        $value = $rule->value;
+        /**
+         * Convert the Operator (LIKE/NOT LIKE/GREATER THAN) given to us by QueryBuilder
+         * into on one that we can use inside the SQL query
+         */
         $_sql_op = $this->operator_sql[$rule->operator];
         $operator = $_sql_op['operator'];
 
-        $require_array = $this->operatorRequiresArray($operator);
-
-        /**
-         * If the SQL Operator is set not to have a value, make sure that we set the value to null.
-         */
-        if ($this->operators[$rule->operator]['accept_values'] === false) {
-            $value = $this->operatorValueWhenNotAcceptingOne($rule);
-        }
-
-        if (is_array($this->fields) && !in_array($rule->field, $this->fields)) {
-            throw new QBParseException("Field ({$rule->field}) does not exist in fields list");
-        }
-
-        /**
-         * \o/ Ensure that the value is an array only if it should be.
-         */
-        $value = $this->getCorrectValue($operator, $rule, $value);
-
-        if ($require_array) {
+        if ($this->operatorRequiresArray($operator)) {
             $query = $this->makeQueryWhenArray($query, $rule, $_sql_op, $value);
         } else {
             $query = $query->where($rule->field, $_sql_op['operator'], $value);
         }
 
         return $query;
+    }
+
+    /**
+     * Ensure that the value is correct for the rule, try and set it if it's not
+     *
+     * @param $rule
+     * @return null|string
+     * @throws QBRuleException
+     * @throws \timgws\QBParseException
+     */
+    protected function getValueForQueryFromRule($rule)
+    {
+        /**
+         * Make sure most of the common fields from the QueryBuilder have been added.
+         */
+        if (!$this->checkRuleCorrect($rule))
+            throw new QBRuleException();
+
+        $value = $rule->value;
+
+        /**
+         * The field must exist in our list.
+         */
+        if (is_array($this->fields) && !in_array($rule->field, $this->fields)) {
+            throw new QBParseException("Field ({$rule->field}) does not exist in fields list");
+        }
+
+        /**
+         * If the SQL Operator is set not to have a value, make sure that we set the value to null.
+         */
+        if ($this->operators[$rule->operator]['accept_values'] === false) {
+            return $this->operatorValueWhenNotAcceptingOne($rule);
+        }
+
+        /**
+         * Convert the Operator (LIKE/NOT LIKE/GREATER THAN) given to us by QueryBuilder
+         * into on one that we can use inside the SQL query
+         */
+        $_sql_op = $this->operator_sql[$rule->operator];
+        $operator = $_sql_op['operator'];
+
+        /**
+         * \o/ Ensure that the value is an array only if it should be.
+         */
+        $value = $this->getCorrectValue($operator, $rule, $value);
+
+        return $value;
     }
 
     /**

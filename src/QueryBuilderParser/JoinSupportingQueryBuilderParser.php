@@ -44,10 +44,13 @@ class JoinSupportingQueryBuilderParser extends QueryBuilderParser
      *
      * @param Builder $query
      * @param stdClass $rule
-     * @return Builder
+     * @param string $queryCondition the condition that will be used in the query
      * @throws QBParseException
+     *
+     * @return Builder
+     *
      */
-    protected function makeQuery(Builder $query, stdClass $rule)
+    protected function makeQuery(Builder $query, stdClass $rule, $queryCondition = "AND")
     {
         /**
          * Ensure that the value is correct for the rule, return query on exception
@@ -57,6 +60,8 @@ class JoinSupportingQueryBuilderParser extends QueryBuilderParser
         } catch (QBRuleException $e) {
             return $query;
         }
+
+        $condition = strtolower($queryCondition);
 
         if (is_array($this->joinFields) && array_key_exists($rule->field, $this->joinFields)) {
             $query = $this->buildSubclauseQuery($query, $rule, $value);
@@ -70,9 +75,9 @@ class JoinSupportingQueryBuilderParser extends QueryBuilderParser
             $require_array = $this->operatorRequiresArray($operator);
 
             if ($require_array) {
-                $query = $this->makeQueryWhenArray($query, $rule, $_sql_op, $value);
+                $query = $this->makeQueryWhenArray($query, $rule, $_sql_op, $value, $condition);
             } else {
-                $query = $query->where($rule->field, $_sql_op['operator'], $value);
+                $query = $query->where($rule->field, $_sql_op['operator'], $value, $condition);
             }
         }
 

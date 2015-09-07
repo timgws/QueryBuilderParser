@@ -30,7 +30,7 @@ class QueryBuilderParserTest extends CommonQueryBuilderTests
 
         $test = $qb->parse($this->json1, $builder);
 
-        $this->assertEquals('select * where `price` < ? OR (`name` LIKE ? and `name` = ?)', $builder->toSql());
+        $this->assertEquals('select * where `price` < ? and (`name` LIKE ? or `name` = ?)', $builder->toSql());
     }
 
     public function testBetterThenTheLastTime()
@@ -41,7 +41,7 @@ class QueryBuilderParserTest extends CommonQueryBuilderTests
         $json = '{"condition":"AND","rules":[{"id":"anchor_text","field":"anchor_text","type":"string","input":"text","operator":"contains","value":"www"},{"condition":"OR","rules":[{"id":"citation_flow","field":"citation_flow","type":"double","input":"text","operator":"greater_or_equal","value":"30"},{"id":"trust_flow","field":"trust_flow","type":"double","input":"text","operator":"greater_or_equal","value":"30"}]}]}';
         $test = $qb->parse($json, $builder);
 
-        $this->assertEquals('select * where `anchor_text` LIKE ? OR (`citation_flow` >= ? and `trust_flow` >= ?)', $builder->toSql());
+        $this->assertEquals('select * where `anchor_text` LIKE ? and (`citation_flow` >= ? or `trust_flow` >= ?)', $builder->toSql());
     }
 
     public function testCategoryIn()
@@ -51,7 +51,7 @@ class QueryBuilderParserTest extends CommonQueryBuilderTests
 
         $qb->parse($this->makeJSONForInNotInTest(), $builder);
 
-        $this->assertEquals('select * where `price` < ? OR (`category` in (?, ?))', $builder->toSql());
+        $this->assertEquals('select * where `price` < ? and (`category` in (?, ?))', $builder->toSql());
     }
 
     public function testCategoryNotIn()
@@ -61,7 +61,7 @@ class QueryBuilderParserTest extends CommonQueryBuilderTests
 
         $qb->parse($this->makeJSONForInNotInTest(false), $builder);
 
-        $this->assertEquals('select * where `price` < ? OR (`category` not in (?, ?))', $builder->toSql());
+        $this->assertEquals('select * where `price` < ? and (`category` not in (?, ?))', $builder->toSql());
     }
 
     public function testManyNestedQuery()
@@ -100,8 +100,23 @@ class QueryBuilderParserTest extends CommonQueryBuilderTests
                              "operator":"equal",
                              "value":"dgfssdfg"
                           }, {
+                             "id":"name",
+                             "field":"name",
+                             "type":"string",
+                             "input":"text",
+                             "operator":"not_equal",
+                             "value":"dgfssdfg"
+                          }, {
                              "condition":"AND",
                              "rules":[
+                                {
+                                   "id":"name",
+                                   "field":"name",
+                                   "type":"string",
+                                   "input":"text",
+                                   "operator":"equal",
+                                   "value":"sadf"
+                                },
                                 {
                                    "id":"name",
                                    "field":"name",
@@ -124,7 +139,8 @@ class QueryBuilderParserTest extends CommonQueryBuilderTests
 
         $qb->parse($json, $builder);
 
-        $this->assertEquals('select * where `price` < ? AND (`category` in (?, ?) OR (`name` = ? AND (`name` = ?)))', $builder->toSql());
+        //$this->assertEquals('select * where `price` < ? AND (`category` in (?, ?) OR (`name` = ? AND (`name` = ?)))', $builder->toSql());
+        $this->assertEquals('select * where `price` < ? and (`category` in (?, ?) and (`name` = ? or `name` != ? or (`name` = ? and `name` = ?)))', $builder->toSql());
         //$this->assertEquals('/* This test currently fails. This should be fixed. */', $builder->toSql());
 
     }
@@ -274,12 +290,24 @@ class QueryBuilderParserTest extends CommonQueryBuilderTests
              "rules":[]
           }]}';
 
+        $builder = $this->createQueryBuilder();
+        $qb = $this->getParserUnderTest();
+
+        $qb->parse($some_json_input, $builder);
+    }
+
+    public function testQueryContains()
+    {
+        $some_json_input = '{"condition":"AND","rules":[{"id":"name","field":"name","type":"string","input":"text","operator":"contains","value":"Johnny"},{"condition":"AND","rules":[{"id":"category","field":"category","type":"integer","input":"select","operator":"equal","value":"2"},{"id":"in_stock","field":"in_stock","type":"integer","input":"radio","operator":"equal","value":"1"},{"condition":"OR","rules":[{"id":"name","field":"name","type":"string","input":"text","operator":"begins_with","value":"tim"},{"id":"name","field":"name","type":"string","input":"text","operator":"contains","value":"timgws"}]},{"condition":"OR","rules":[{"id":"name","field":"name","type":"string","input":"text","operator":"ends_with","value":"builder"},{"id":"name","field":"name","type":"string","input":"text","operator":"contains","value":"qbp"},{"id":"name","field":"name","type":"string","input":"text","operator":"begins_with","value":"query"}]}]}]}';
 
         $builder = $this->createQueryBuilder();
         $qb = $this->getParserUnderTest();
 
         $qb->parse($some_json_input, $builder);
 
-        //fwrite(STDERR, $builder->toSql());
+        $expected_sql = 'select * where `name` like ? and (`category` = ? and `in_stock` = ? and (`name` like ? or `name` like ?) and (`name` like ? or `name` like ? or `name` like ?))';
+        $sql = $builder->toSql();
+
+        $this->assertEquals(strtolower($expected_sql), strtolower($sql));
     }
 }

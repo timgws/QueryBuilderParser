@@ -29,21 +29,21 @@ class JoinSupportingQueryBuilderParserTest extends CommonQueryBuilderTests
                 'to_value_column' => 's_value'
             ],
             'join2' => [
-              'from_table' => 'master2',
-              'from_col' => 'm2_col',
-              'to_table' => 'subtable2',
-              'to_col' => 's2_col',
-              'to_value_column' => 's2_value',
-              'not_exists' => true
+                'from_table' => 'master2',
+                'from_col' => 'm2_col',
+                'to_table' => 'subtable2',
+                'to_col' => 's2_col',
+                'to_value_column' => 's2_value',
+                'not_exists' => true
             ],
-          'joinwithclause' => [
-            'from_table' => 'master',
-            'from_col' => 'm_col',
-            'to_table' => 'subtable',
-            'to_col' => 's_col',
-            'to_value_column' => 's_value',
-            'to_clause' => ['othercol' => 'value']
-          ]
+            'joinwithclause' => [
+                'from_table' => 'master',
+                'from_col' => 'm_col',
+                'to_table' => 'subtable',
+                'to_col' => 's_col',
+                'to_value_column' => 's_value',
+                'to_clause' => ['othercol' => 'value']
+            ]
         ];
     }
 
@@ -208,6 +208,6 @@ class JoinSupportingQueryBuilderParserTest extends CommonQueryBuilderTests
 
         $qb->parse($this->makeJSONForInNotInTest(), $builder);
 
-        $this->assertEquals('select * where `price` < ? OR (`category` in (?, ?))', $builder->toSql());
+        $this->assertEquals('select * where `price` < ? and (`category` in (?, ?))', $builder->toSql());
     }
 }

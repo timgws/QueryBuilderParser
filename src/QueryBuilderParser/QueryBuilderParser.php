@@ -97,7 +97,7 @@ class QueryBuilderParser {
             return $querybuilder;
         }
 
-        return $this->loopThroughRules($query->rules, $querybuilder);
+        return $this->loopThroughRules($query->rules, $querybuilder, $query->condition);
     }
 
     /**
@@ -105,20 +105,21 @@ class QueryBuilderParser {
      *
      * @param array   $rules
      * @param Builder $querybuilder
+     * @param string  $queryCondition
      * @throws QBParseException
      *
      * @return Builder
      */
-    protected function loopThroughRules(array $rules, Builder $querybuilder)
+    protected function loopThroughRules(array $rules, Builder $querybuilder, $queryCondition = 'AND')
     {
         foreach ($rules as $rule) {
             /*
              * If makeQuery does not see the correct fields, it will return the QueryBuilder without modifications
              */
-            $querybuilder = $this->makeQuery($querybuilder, $rule);
+            $querybuilder = $this->makeQuery($querybuilder, $rule, $queryCondition);
 
             if ($this->isNested($rule)) {
-                $querybuilder = $this->createNestedQuery($querybuilder, $rule);
+                $querybuilder = $this->createNestedQuery($querybuilder, $rule, $queryCondition);
             }
         }
 
@@ -162,11 +163,11 @@ class QueryBuilderParser {
                 if ($this->isNested($_rule)) {
                     $querybuilder = $this->createNestedQuery($query, $_rule, $rule->condition);
                 } else {
-                    $querybuilder = $this->makeQuery($query, $_rule);
+                    $querybuilder = $this->makeQuery($query, $_rule, $rule->condition);
                 }
             }
 
-        }, $rule->condition);
+        }, $condition);
     }
 
     /**
@@ -266,10 +267,11 @@ class QueryBuilderParser {
      *
      * @param Builder $query
      * @param stdClass $rule
+     * @param string $queryCondition and/or...
      * @return Builder
      * @throws QBParseException
      */
-    protected function makeQuery(Builder $query, stdClass $rule)
+    protected function makeQuery(Builder $query, stdClass $rule, $queryCondition = "AND")
     {
         /**
          * Ensure that the value is correct for the rule, return query on exception
@@ -286,11 +288,12 @@ class QueryBuilderParser {
          */
         $_sql_op = $this->operator_sql[$rule->operator];
         $operator = $_sql_op['operator'];
+        $condition = strtolower($queryCondition);
 
         if ($this->operatorRequiresArray($operator)) {
-            $query = $this->makeQueryWhenArray($query, $rule, $_sql_op, $value);
+            $query = $this->makeQueryWhenArray($query, $rule, $_sql_op, $value, $condition);
         } else {
-            $query = $query->where($rule->field, $_sql_op['operator'], $value);
+            $query = $query->where($rule->field, $_sql_op['operator'], $value, $condition);
         }
 
         return $query;

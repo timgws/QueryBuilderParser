@@ -12,11 +12,15 @@ projects by using Illuminate/Database.
 
 A simple to use query builder for the [jQuery QueryBuilder plugin](http://mistic100.github.io/jQuery-QueryBuilder/).
 
+# Using QueryBuilderParser to build a new query from QueryBuilder rules.
+
 ```php
     use timgws\QueryBuilderParser;
 
-    $table = DB::table('table_of_data_to_interegate');
+    $table = DB::table('table_of_data_to_integrate');
     $qbp = new QueryBuilderParser(
+        // provide here a list of allowable rows from the query builder.
+        // NOTE: if a row is listed here, you will be able to create limits on that row from QBP.
         array( 'row1', 'row2', 'row3' )
     );
 
@@ -26,7 +30,10 @@ A simple to use query builder for the [jQuery QueryBuilder plugin](http://mistic
     return Response::JSON($rows);
 ```
 
-Mixed with Datatables, this makes for some true awesome.
+# Using QueryBuilderParser with jQuery Datatables
+
+Mixed with Datatables, jQuery QueryBuilder makes for some true awesome, allowing limitless options
+for filtering data, and seeing the results on the fly.
 
 ```php
     use timgws\QueryBuilderParser;
@@ -52,8 +59,56 @@ Mixed with Datatables, this makes for some true awesome.
     }
 ```
 
-## Known issues
-Some complex queries with QueryBuilder 2.1.0 are failing.
+On the client side, a little bit of magic is required to make everything work.
+
+```js
+    // the default rules, what will be used on page loads...
+    var datatablesRequest = {};
+    var _rules = defaultRules = {"condition":"AND","rules":[
+        {"id":"active","field":"active","type":"integer","input":"radio","operator":"equal","value":"1"}
+    ]};
+
+    // a button/link that is used to update the rules.
+    function updateFilters() {
+        _rules = $('#querybuilder').queryBuilder('getRules');
+    }
+
+    function filterChange() {
+        var _json = JSON.stringify( _rules );
+        datatablesRequest = { rules: _json };
+    }
+
+    saveRules();
+
+    function reloadAudit() {
+        /* Datatables first... */
+        saveRules();
+
+        $('.dataTable').each(function() {
+            dt = $(this).dataTable();
+            dt.fnDraw();
+        })
+    }
+
+    jQuery(document).ready(function(){
+        // dynamic table
+        oTable = jQuery('.datatable').dataTable({
+            "fnServerParams": function(aoData) {
+                // add the extra parameters from the jQuery QueryBuilder to the Datatable endpoint...
+                $.each(datatablesRequest , function(k,v){
+                    aoData.push({"name": k, "value": v});
+                })
+            }
+        })
+    });
+```
+
+# Exporting CSV files
+
+Just as a footnote, there are right ways to export CSV files, and there are wrong ways.
+
+For the right way, check out the question on StackOverflow,
+[How can I output a UTF-8 CSV in PHP that Excel will read properly?](http://stackoverflow.com/a/16766198/2143004)
 
 ## Reporting Issues
 

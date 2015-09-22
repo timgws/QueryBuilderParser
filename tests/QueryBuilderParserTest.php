@@ -218,6 +218,71 @@ class QueryBuilderParserTest extends \PHPUnit_Framework_TestCase
 
     }
 
+    public function testManyNestedQueryWithOr()
+    {
+        // $('#builder-basic').queryBuilder('setRules', /** This object */);
+        $json = '{
+           "condition":"OR",
+           "rules":[
+              {
+                 "id":"price",
+                 "field":"price",
+                 "type":"double",
+                 "input":"text",
+                 "operator":"less",
+                 "value":"10.25"
+              }, {
+                 "condition":"OR",
+                 "rules":[
+                    {
+                       "id":"category",
+                       "field":"category",
+                       "type":"integer",
+                       "input":"select",
+                       "operator":"in",
+                       "value":[
+                          "1", "2"
+                       ]
+                    }, {
+                       "condition":"AND",
+                       "rules":[
+                          {
+                             "id":"name",
+                             "field":"name",
+                             "type":"string",
+                             "input":"text",
+                             "operator":"equal",
+                             "value":"dgfssdfg"
+                          }, {
+                             "condition":"AND",
+                             "rules":[
+                                {
+                                   "id":"name",
+                                   "field":"name",
+                                   "type":"string",
+                                   "input":"text",
+                                   "operator":"equal",
+                                   "value":"sadf"
+                                }
+                             ]
+                          }
+                       ]
+                    }
+                 ]
+              }
+           ]
+        }';
+
+        $builder = $this->createQueryBuilder();
+        $qb = $this->getParserUnderTest();
+
+        $qb->parse($json, $builder);
+
+        $this->assertEquals('select * where `price` < ? or (`category` in (?, ?) or (`name` = ? and (`name` = ?)))', $builder->toSql());
+        //$this->assertEquals('/* This test currently fails. This should be fixed. */', $builder->toSql());
+
+    }
+
     /**
      * @expectedException \timgws\QBParseException
      */

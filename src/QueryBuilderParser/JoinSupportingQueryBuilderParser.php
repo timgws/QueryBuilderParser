@@ -40,10 +40,11 @@ class JoinSupportingQueryBuilderParser extends QueryBuilderParser{
      *
      * @param Builder $query
      * @param stdClass $rule
+     * @param String $condition
      * @return Builder
      * @throws QBParseException
      */
-    protected function makeQuery(Builder $query, stdClass $rule)
+    protected function makeQuery(Builder $query, stdClass $rule, $condition)
     {
         /**
          * Make sure most of the common fields from the QueryBuilder have been added.
@@ -114,13 +115,13 @@ class JoinSupportingQueryBuilderParser extends QueryBuilderParser{
                   } else {
                       $q->where($subclause['to_value_column'], $subclause['operator'], $subclause['value']);
                   }
-            },'and',$not);
+            },$condition,$not);
 
         } else {
             if ($require_array) {
-                $query = $this->makeQueryWhenArray($query, $rule, $_sql_op, $value);
+                $query = $this->makeQueryWhenArray($query, $rule, $_sql_op, $value, $condition);
             } else {
-                $query = $query->where($rule->field, $_sql_op['operator'], $value);
+                $query = $query->where($rule->field, $_sql_op['operator'], $value, $condition);
             }
         }
         return $query;

@@ -82,7 +82,7 @@ class QueryBuilderParserTest extends \PHPUnit_Framework_TestCase
 
         $test = $qb->parse($this->json1, $builder);
 
-        $this->assertEquals('select * where `price` < ? OR (`name` LIKE ? and `name` = ?)', $builder->toSql());
+        $this->assertEquals('select * where `price` < ? and (`name` LIKE ? or `name` = ?)', $builder->toSql());
     }
 
     public function testBetterThenTheLastTime()
@@ -93,7 +93,7 @@ class QueryBuilderParserTest extends \PHPUnit_Framework_TestCase
         $json = '{"condition":"AND","rules":[{"id":"anchor_text","field":"anchor_text","type":"string","input":"text","operator":"contains","value":"www"},{"condition":"OR","rules":[{"id":"citation_flow","field":"citation_flow","type":"double","input":"text","operator":"greater_or_equal","value":"30"},{"id":"trust_flow","field":"trust_flow","type":"double","input":"text","operator":"greater_or_equal","value":"30"}]}]}';
         $test = $qb->parse($json, $builder);
 
-        $this->assertEquals('select * where `anchor_text` LIKE ? OR (`citation_flow` >= ? and `trust_flow` >= ?)', $builder->toSql());
+        $this->assertEquals('select * where `anchor_text` LIKE ? and (`citation_flow` >= ? or `trust_flow` >= ?)', $builder->toSql());
     }
 
     private function makeJSONForInNotInTest($is_in = true)
@@ -140,7 +140,7 @@ class QueryBuilderParserTest extends \PHPUnit_Framework_TestCase
 
         $qb->parse($this->makeJSONForInNotInTest(), $builder);
 
-        $this->assertEquals('select * where `price` < ? OR (`category` in (?, ?))', $builder->toSql());
+        $this->assertEquals('select * where `price` < ? and (`category` in (?, ?))', $builder->toSql());
     }
 
     public function testCategoryNotIn()
@@ -150,7 +150,7 @@ class QueryBuilderParserTest extends \PHPUnit_Framework_TestCase
 
         $qb->parse($this->makeJSONForInNotInTest(false), $builder);
 
-        $this->assertEquals('select * where `price` < ? OR (`category` not in (?, ?))', $builder->toSql());
+        $this->assertEquals('select * where `price` < ? and (`category` not in (?, ?))', $builder->toSql());
     }
 
     public function testManyNestedQuery()
@@ -213,7 +213,7 @@ class QueryBuilderParserTest extends \PHPUnit_Framework_TestCase
 
         $qb->parse($json, $builder);
 
-        $this->assertEquals('select * where `price` < ? AND (`category` in (?, ?) OR (`name` = ? AND (`name` = ?)))', $builder->toSql());
+        $this->assertEquals('select * where `price` < ? and (`category` in (?, ?) and (`name` = ? or (`name` = ?)))', $builder->toSql());
         //$this->assertEquals('/* This test currently fails. This should be fixed. */', $builder->toSql());
 
     }

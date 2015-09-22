@@ -97,27 +97,25 @@ class QueryBuilderParser {
             return $querybuilder;
         }
 
-        return $this->loopThroughRules($query->rules, $querybuilder);
+        return $this->loopThroughRules($query->rules, strtolower($query->condition), $querybuilder);
     }
 
     /**
      * Called by parse, loops through all the rules to find out if nested or not.
      *
      * @param array $rules
+     * @param String $condition
      * @param Builder $querybuilder
      * @return Builder
      * @throws QBParseException
      */
-    protected function loopThroughRules(array $rules, Builder $querybuilder)
+    protected function loopThroughRules(array $rules, $condition, Builder $querybuilder)
     {
-        foreach ($rules as $rule) {
-            /**
-             * If makeQuery does not see the correct fields, it will return the QueryBuilder without modifications
-             */
-            $querybuilder = $this->makeQuery($querybuilder, $rule);
+        foreach ($rules as $index => $rule) {
+            $querybuilder = $this->makeQuery($querybuilder, $rule, $condition);
 
             if ($this->isNested($rule)) {
-                $querybuilder = $this->createNestedQuery($querybuilder, $rule);
+                $querybuilder = $this->createNestedQuery($querybuilder, $rule, $condition);
             }
         }
 
@@ -142,30 +140,28 @@ class QueryBuilderParser {
     /**
      * Create nested queries
      *
-     * When a rule is actually a group of rules, we want to build a nested query with the specified condition (AND/OR)
+     * When a rule is actually a group of rules, we want to build a nested query, and set the consition to be the
+     * specified condition (AND/OR) within this new set of rules
      *
      * @param Builder $querybuilder
      * @param stdClass $rule
-     * @param null $condition
+     * @param String $condition
      * @return mixed
      */
-    protected function createNestedQuery(Builder $querybuilder, stdClass $rule, $condition = null)
+    protected function createNestedQuery(Builder $querybuilder, stdClass $rule, $condition)
     {
-        if ($condition === null)
-            $condition = $rule->condition;
+        $subCondition = $this->validateCondition($rule->condition);
 
-        $condition = $this->validateCondition($condition);
-
-        return $querybuilder->whereNested(function($query) use (&$rule, &$querybuilder, &$condition) {
+        return $querybuilder->whereNested(function($query) use (&$rule, &$querybuilder, &$subCondition) {
             foreach($rule->rules as $_rule) {
                 if ($this->isNested($_rule)) {
-                    $querybuilder = $this->createNestedQuery($query, $_rule, $rule->condition);
+                    $querybuilder = $this->createNestedQuery($query, $_rule, $subCondition);
                 } else {
-                    $querybuilder = $this->makeQuery($query, $_rule);
+                    $querybuilder = $this->makeQuery($query, $_rule, $subCondition);
                 }
             }
 
-        }, $rule->condition);
+        }, $condition);
     }
 
     /**
@@ -259,10 +255,11 @@ class QueryBuilderParser {
      *
      * @param Builder $query
      * @param stdClass $rule
+     * @param String $condition
      * @return Builder
      * @throws QBParseException
      */
-    protected function makeQuery(Builder $query, stdClass $rule)
+    protected function makeQuery(Builder $query, stdClass $rule, $condition)
     {
         /**
          * Make sure most of the common fields from the QueryBuilder have been added.
@@ -293,9 +290,9 @@ class QueryBuilderParser {
         $value = $this->getCorrectValue($operator, $rule, $value);
 
         if ($require_array) {
-            $query = $this->makeQueryWhenArray($query, $rule, $_sql_op, $value);
+            $query = $this->makeQueryWhenArray($query, $rule, $_sql_op, $value, $condition);
         } else {
-            $query = $query->where($rule->field, $_sql_op['operator'], $value);
+            $query = $query->where($rule->field, $_sql_op['operator'], $value, $condition);
         }
 
         return $query;
@@ -314,7 +311,7 @@ class QueryBuilderParser {
      * @return Builder
      * @throws QBParseException
      */
-    protected function makeQueryWhenArray(Builder $query, stdClass $rule, array $_sql_op, $value)
+    protected function makeQueryWhenArray(Builder $query, stdClass $rule, array $_sql_op, $value, $condition)
     {
         if ($_sql_op['operator'] == 'IN') {
             $query = $query->whereIn($rule->field, $value);
@@ -324,7 +321,7 @@ class QueryBuilderParser {
             if (count($value) !== 2)
                 throw new QBParseException("{$rule->field} should be an array with only two items.");
 
-            $query = $query->whereBetween($rule->field, $value);
+            $query = $query->whereBetween($rule->field, $value, $condition);
         }
 
         return $query;

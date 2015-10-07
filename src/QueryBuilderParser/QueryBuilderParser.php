@@ -314,9 +314,9 @@ class QueryBuilderParser {
     protected function makeQueryWhenArray(Builder $query, stdClass $rule, array $_sql_op, $value, $condition)
     {
         if ($_sql_op['operator'] == 'IN') {
-            $query = $query->whereIn($rule->field, $value);
+            $query = $query->whereIn($rule->field, $value, $condition);
         } elseif ($_sql_op['operator'] == 'NOT IN') {
-            $query = $query->whereNotIn($rule->field, $value);
+            $query = $query->whereNotIn($rule->field, $value, $condition);
         } elseif ($_sql_op['operator'] == 'BETWEEN') {
             if (count($value) !== 2)
                 throw new QBParseException("{$rule->field} should be an array with only two items.");

@@ -20,8 +20,10 @@ class JoinSupportingQueryBuilderParser extends QueryBuilderParser
      *                          - from_col         The column of the master table to use in the join
      *                          - to_table         The name of the join table
      *                          - to_col           The column of the join table to use
-     *                          - to_value_column  The column of the join table containing the value to use as a where clause
-     *                          - to_clause*       An additional clause to add to the join condition, compatible with $query->where($clause)
+     *                          - to_value_column  The column of the join table containing the value to use as a
+     *                                             where clause
+     *                          - to_clause*       An additional clause to add to the join condition, compatible
+     *                                             with $query->where($clause)
      *                          - not_exists*      Only return rows which do not exist in the subclause
      *
      * * optional field
@@ -68,14 +70,14 @@ class JoinSupportingQueryBuilderParser extends QueryBuilderParser
              * Convert the Operator (LIKE/NOT LIKE/GREATER THAN) given to us by QueryBuilder
              * into on one that we can use inside the SQL query
              */
-            $_sql_op = $this->operator_sql[$rule->operator];
-            $operator = $_sql_op['operator'];
-            $require_array = $this->operatorRequiresArray($operator);
+            $sqlOperator = $this->operator_sql[$rule->operator];
+            $operator = $sqlOperator['operator'];
+            $requireArray = $this->operatorRequiresArray($operator);
 
-            if ($require_array) {
-                $query = $this->makeQueryWhenArray($query, $rule, $_sql_op, $value, $condition);
+            if ($requireArray) {
+                $query = $this->makeQueryWhenArray($query, $rule, $sqlOperator, $value, $condition);
             } else {
-                $query = $query->where($rule->field, $_sql_op['operator'], $value, $condition);
+                $query = $query->where($rule->field, $sqlOperator['operator'], $value, $condition);
             }
         }
 
@@ -129,7 +131,9 @@ class JoinSupportingQueryBuilderParser extends QueryBuilderParser
                 } else {
                     $q->where($subclause['to_value_column'], $subclause['operator'], $subclause['value']);
                 }
-            }, 'and', $not);
+            },
+            'and',
+            $not);
 
         return $query;
     }

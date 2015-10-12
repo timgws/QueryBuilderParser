@@ -73,8 +73,10 @@ trait QBPFunctions
     protected function validateCondition($condition)
     {
         $condition = trim(strtolower($condition));
-        if ($condition !== 'and' && $condition !== 'or')
+
+        if ($condition !== 'and' && $condition !== 'or') {
             throw new QBParseException("Condition can only be one of: 'and', 'or'.");
+        }
 
         return $condition;
     }

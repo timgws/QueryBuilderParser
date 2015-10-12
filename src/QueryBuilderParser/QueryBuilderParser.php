@@ -168,10 +168,9 @@ class QueryBuilderParser
     protected function operatorValueWhenNotAcceptingOne(stdClass $rule)
     {
         if ($this->operators[$rule->operator]['accept_values'] === false) {
+            $value = null;
             if ($rule->operator == 'is_empty' || $rule->operator == 'is_not_empty') {
                 $value = '';
-            } else {
-                $value = null;
             }
         }
 
@@ -302,8 +301,8 @@ class QueryBuilderParser
          * Convert the Operator (LIKE/NOT LIKE/GREATER THAN) given to us by QueryBuilder
          * into on one that we can use inside the SQL query
          */
-        $_sql_op = $this->operator_sql[$rule->operator];
-        $operator = $_sql_op['operator'];
+        $sqlOperator = $this->operator_sql[$rule->operator];
+        $operator = $sqlOperator['operator'];
 
         /*
          * \o/ Ensure that the value is an array only if it should be.
@@ -321,20 +320,21 @@ class QueryBuilderParser
      *
      * @param Builder  $query
      * @param stdClass $rule
-     * @param array    $_sql_op
-     * @param $value
+     * @param array    $sqlOperator
+     * @param string   $value
+     * @param string   $condition
      *
      * @throws QBParseException
      *
      * @return Builder
      */
-    protected function makeQueryWhenArray(Builder $query, stdClass $rule, array $_sql_op, $value, $condition)
+    protected function makeQueryWhenArray(Builder $query, stdClass $rule, array $sqlOperator, $value, $condition)
     {
-        if ($_sql_op['operator'] == 'IN') {
+        if ($sqlOperator['operator'] == 'IN') {
             $query = $query->whereIn($rule->field, $value, $condition);
-        } elseif ($_sql_op['operator'] == 'NOT IN') {
+        } elseif ($sqlOperator['operator'] == 'NOT IN') {
             $query = $query->whereNotIn($rule->field, $value, $condition);
-        } elseif ($_sql_op['operator'] == 'BETWEEN') {
+        } elseif ($sqlOperator['operator'] == 'BETWEEN') {
             if (count($value) !== 2) {
                 throw new QBParseException("{$rule->field} should be an array with only two items.");
             }

@@ -205,6 +205,68 @@ class QueryBuilderParserTest extends CommonQueryBuilderTests
         $this->assertEquals($sqlBindings[0], 'NULL');
     }
 
+    public function testValueBecomesEmpty()
+    {
+        $v = '1.23';
+        $json = '{"condition":"AND","rules":['
+            .'{"id":"price","field":"price","type":"double","input":"text",'
+            .'"operator":"is_empty","value":['.$v.']}]}';
+
+        $builder = $this->createQueryBuilder();
+        $qb = $this->getParserUnderTest();
+        $test = $qb->parse($json, $builder);
+
+        $sqlBindings = $builder->getBindings();
+        $this->assertCount(1, $sqlBindings);
+        $this->assertEquals($sqlBindings[0], '');
+    }
+
+    public function testValueIsValid()
+    {
+        $v = '1.23';
+        $json = '{"condition":"AND","rules":['
+            .'{"id":"price","field":"price","type":"double","input":"text",'
+            .'"operator":"is_truely_empty","value":['.$v.']}]}';
+
+        $builder = $this->createQueryBuilder();
+        $qb = $this->getParserUnderTest();
+        $test = $qb->parse($json, $builder);
+
+        $sqlBindings = $builder->getBindings();
+        $this->assertCount(0, $sqlBindings);
+    }
+
+    /**
+     * @expectedException timgws\QBParseException
+     * @expectedMessage Field (price) should not be an array, but it is.
+     */
+    public function testInputIsNotArray()
+    {
+        $v = '1.23';
+        $json = '{"condition":"AND","rules":['
+            .'{"id":"price","field":"price","type":"double","input":"text",'
+            .'"operator":"equal","value":["tim","simon"]}]}';
+
+        $builder = $this->createQueryBuilder();
+        $qb = $this->getParserUnderTest();
+        $test = $qb->parse($json, $builder);
+    }
+
+    public function testRuleHasInputAndType()
+    {
+        $v = '1.23';
+        $json = '{"condition":"AND","rules":['
+            .'{"id":"price","field":"price","type":"double","inputs":"text",'
+            .'"operator":"is_truely_empty","value":['.$v.']}]}';
+
+        $builder = $this->createQueryBuilder();
+        $qb = $this->getParserUnderTest();
+        $test = $qb->parse($json, $builder);
+
+        $sqlBindings = $builder->getBindings();
+        $this->assertCount(0, $sqlBindings);
+    }
+
     /**
      * @expectedException \timgws\QBParseException
      * @expectedExceptionMessage Field (price) does not exist in fields list
@@ -335,10 +397,11 @@ class QueryBuilderParserTest extends CommonQueryBuilderTests
      */
     public function testIncorrectCondition()
     {
-        $json = '{"condition":"XAND","rules":[
+        $json = '{"condition":null,"rules":[
             {"condition":"AXOR","rules":[
                 {"id":"geo_constituency","field":"geo_constituency","type":"string","input":"select","operator":"in","value":["Aberdeen South"]},
                 {"id":"geo_constituency","field":"geo_constituency","type":"string","input":"select","operator":"in","value":["Aberdeen South"]},
+                {"id":"geo_constituency","field":"geo_constituency","type":"string","input":"select","operator":"is_empty","value":["Aberdeen South"]},
                 {"condition":"AXOR","rules":[
                     {"id":"geo_constituency","field":"geo_constituency","type":"string","input":"select","operator":"in","value":["Aberdeen South"]},
                     {"id":"geo_constituency","field":"geo_constituency","type":"string","input":"select","operator":"in","value":["Aberdeen South"]}

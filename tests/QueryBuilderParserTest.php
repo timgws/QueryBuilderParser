@@ -323,8 +323,33 @@ class QueryBuilderParserTest extends CommonQueryBuilderTests
             {"id":"geo_constituency","field":"geo_constituency","type":"string","input":"select","operator":"in","value":["Banbury"]}]}]}';
         $builder = $this->createQueryBuilder();
         $qb = $this->getParserUnderTest();
-        $test = $qb->parse($json, $builder);
+        $qb->parse($json, $builder);
         $this->assertEquals('select * where `email_pool` LIKE ? and (`geo_constituency` in (?) or `geo_constituency` in (?))',
             $builder->toSql());
+    }
+
+    /**
+     * @throws \timgws\QBParseException
+     * @expectedException \timgws\QBParseException
+     * @expectedExceptionMessage Condition can only be one of: 'and', 'or'.
+     */
+    public function testIncorrectCondition()
+    {
+        $json = '{"condition":"XAND","rules":[
+            {"condition":"AXOR","rules":[
+                {"id":"geo_constituency","field":"geo_constituency","type":"string","input":"select","operator":"in","value":["Aberdeen South"]},
+                {"id":"geo_constituency","field":"geo_constituency","type":"string","input":"select","operator":"in","value":["Aberdeen South"]},
+                {"condition":"AXOR","rules":[
+                    {"id":"geo_constituency","field":"geo_constituency","type":"string","input":"select","operator":"in","value":["Aberdeen South"]},
+                    {"id":"geo_constituency","field":"geo_constituency","type":"string","input":"select","operator":"in","value":["Aberdeen South"]}
+                ]}
+            ]}
+        ]}';
+
+        $builder = $this->createQueryBuilder();
+        $qb = $this->getParserUnderTest();
+        $qb->parse($json, $builder);
+
+        print_r($builder->toSql());
     }
 }

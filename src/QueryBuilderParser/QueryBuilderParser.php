@@ -119,14 +119,14 @@ class QueryBuilderParser
         $condition = $this->validateCondition($condition);
 
         return $querybuilder->whereNested(function ($query) use (&$rule, &$querybuilder, &$condition) {
-            foreach ($rule->rules as $_rule) {
+            foreach ($rule->rules as $loopRule) {
                 $function = 'makeQuery';
 
-                if ($this->isNested($_rule)) {
+                if ($this->isNested($loopRule)) {
                     $function = 'createNestedQuery';
                 }
 
-                $querybuilder = $this->{$function}($query, $_rule, $rule->condition);
+                $querybuilder = $this->{$function}($query, $loopRule, $rule->condition);
             }
 
         }, $condition);
@@ -194,25 +194,25 @@ class QueryBuilderParser
     protected function getCorrectValue($operator, stdClass $rule, $value)
     {
         $field = $rule->field;
-        $_sql_op = $this->operator_sql[$rule->operator];
-        $require_array = $this->operatorRequiresArray($operator);
+        $sqlOperator = $this->operator_sql[$rule->operator];
+        $requireArray = $this->operatorRequiresArray($operator);
 
-        if ($require_array && !is_array($value)) {
+        if ($requireArray && !is_array($value)) {
             throw new QBParseException("Field ($field) should be an array, but it isn't.");
-        } elseif (!$require_array && is_array($value)) {
+        } elseif (!$requireArray && is_array($value)) {
             if (count($value) !== 1) {
                 throw new QBParseException("Field ($field) should not be an array, but it is.");
             }
             $value = $value[0];
         }
 
-        if (!$require_array) {
-            if (isset($_sql_op['append'])) {
-                $value = $_sql_op['append'].$value;
+        if (!$requireArray) {
+            if (isset($sqlOperator['append'])) {
+                $value = $sqlOperator['append'].$value;
             }
 
-            if (isset($_sql_op['prepend'])) {
-                $value = $value.$_sql_op['prepend'];
+            if (isset($sqlOperator['prepend'])) {
+                $value = $value.$sqlOperator['prepend'];
             }
         }
 
@@ -250,14 +250,14 @@ class QueryBuilderParser
          * Convert the Operator (LIKE/NOT LIKE/GREATER THAN) given to us by QueryBuilder
          * into on one that we can use inside the SQL query
          */
-        $_sql_op = $this->operator_sql[$rule->operator];
-        $operator = $_sql_op['operator'];
+        $sqlOperator = $this->operator_sql[$rule->operator];
+        $operator = $sqlOperator['operator'];
         $condition = strtolower($queryCondition);
 
         if ($this->operatorRequiresArray($operator)) {
-            $query = $this->makeQueryWhenArray($query, $rule, $_sql_op, $value, $condition);
+            $query = $this->makeQueryWhenArray($query, $rule, $sqlOperator, $value, $condition);
         } else {
-            $query = $query->where($rule->field, $_sql_op['operator'], $value, $condition);
+            $query = $query->where($rule->field, $sqlOperator['operator'], $value, $condition);
         }
 
         return $query;

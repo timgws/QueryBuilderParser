@@ -1,13 +1,12 @@
 <?php
+
 namespace timgws\test;
 
-use timgws\QueryBuilderParser;
-use Illuminate\Database\Capsule\Manager as Capsule;
-use Illuminate\Database\Query\Builder;
 use Illuminate\Database\Connection as Connection;
-use Illuminate\Database\Connectors\MySqlConnector as MySQL;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Database\Query\Grammars\MySqlGrammar as MySQLGrammar;
 use Illuminate\Database\Query\Processors\MySqlProcessor as MySQLProcessor;
+use timgws\QueryBuilderParser;
 
 class CommonQueryBuilderTests extends \PHPUnit_Framework_TestCase
 {
@@ -66,10 +65,9 @@ class CommonQueryBuilderTests extends \PHPUnit_Framework_TestCase
 
     protected function makeJSONForInNotInTest($is_in = true)
     {
-
-        $operator = "not_in";
+        $operator = 'not_in';
         if ($is_in) {
-            $operator = "in";
+            $operator = 'in';
         }
 
         return '{
@@ -90,7 +88,7 @@ class CommonQueryBuilderTests extends \PHPUnit_Framework_TestCase
                    "field":"category",
                    "type":"integer",
                    "input":"select",
-                   "operator":"' . $operator . '",
+                   "operator":"'.$operator.'",
                    "value":[
                       "1", "2"
                    ]}

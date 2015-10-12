@@ -1,11 +1,13 @@
 <?php
 
 namespace timgws;
+
 use \stdClass;
 use \timgws\QBParseException;
 use \Illuminate\Database\Query\Builder;
 
-class QueryBuilderParser {
+class QueryBuilderParser
+{
 
     protected $operators = array (
         'equal'            => array ('accept_values' => true,  'apply_to' => ['string', 'number', 'datetime']),
@@ -51,8 +53,8 @@ class QueryBuilderParser {
         'is_not_null'      => array ('operator' => 'NOT NULL')
     );
 
-    protected $needs_array = array (
-        'IN', 'NOT IN', 'BETWEEN'
+    protected $needs_array = array(
+        'IN', 'NOT IN', 'BETWEEN',
     );
 
     protected $fields;
@@ -72,15 +74,17 @@ class QueryBuilderParser {
      *
      * @param $json
      * @param Builder $querybuilder
-     * @return Builder
+     *
      * @throws QBParseException
+     *
+     * @return Builder
      */
     public function parse($json, Builder $querybuilder)
     {
         $query = json_decode($json);
 
-        if ($error = json_last_error()) {
-            throw new QBParseException('JSON parsing threw an error: ' . json_last_error_msg());
+        if (json_last_error()) {
+            throw new QBParseException('JSON parsing threw an error: '.json_last_error_msg());
         }
 
         if (!is_object($query)) {
@@ -106,6 +110,7 @@ class QueryBuilderParser {
      * @param array   $rules
      * @param Builder $querybuilder
      * @param string  $queryCondition
+     *
      * @throws QBParseException
      *
      * @return Builder
@@ -127,9 +132,10 @@ class QueryBuilderParser {
     }
 
     /**
-     * Determine if a particular rule is actually a group of other rules
+     * Determine if a particular rule is actually a group of other rules.
      *
      * @param $rule
+     *
      * @return bool
      */
     protected function isNested($rule)
@@ -153,67 +159,77 @@ class QueryBuilderParser {
      */
     protected function createNestedQuery(Builder $querybuilder, stdClass $rule, $condition = null)
     {
-        if ($condition === null)
+        if ($condition === null) {
             $condition = $rule->condition;
+        }
 
         $condition = $this->validateCondition($condition);
 
-        return $querybuilder->whereNested(function($query) use (&$rule, &$querybuilder, &$condition) {
-            foreach($rule->rules as $_rule) {
+        return $querybuilder->whereNested(function ($query) use (&$rule, &$querybuilder, &$condition) {
+            foreach ($rule->rules as $_rule) {
+                $function = 'makeQuery';
+
                 if ($this->isNested($_rule)) {
-                    $querybuilder = $this->createNestedQuery($query, $_rule, $rule->condition);
-                } else {
-                    $querybuilder = $this->makeQuery($query, $_rule, $rule->condition);
+                    $function = 'createNestedQuery';
                 }
+
+                $querybuilder = $this->{$function}($query, $_rule, $rule->condition);
             }
 
         }, $condition);
     }
 
     /**
-     * Check if a given rule is correct
+     * Check if a given rule is correct.
      *
      * Just before making a query for a rule, we want to make sure that the field, operator and value are set
      *
      * @param stdClass $rule
+     *
      * @return bool true if values are correct.
      */
     protected function checkRuleCorrect(stdClass $rule)
     {
-        if (!isset($rule->operator) || !isset($rule->id) || !isset($rule->field))
+        if (!isset($rule->operator) || !isset($rule->id) || !isset($rule->field)) {
             return false;
+        }
 
-        if (!isset($rule->input) || !isset($rule->type))
+        if (!isset($rule->input) || !isset($rule->type)) {
             return false;
+        }
 
-        if (!isset($this->operators[$rule->operator]))
+        if (!isset($this->operators[$rule->operator])) {
             return false;
+        }
 
         return true;
     }
 
     /**
-     * Give back the correct value when we don't accept one
+     * Give back the correct value when we don't accept one.
      *
      * @param $rule
+     *
      * @return null|string
      */
     protected function operatorValueWhenNotAcceptingOne(stdClass $rule)
     {
         if ($this->operators[$rule->operator]['accept_values'] === false) {
-            if ($rule->operator == 'is_empty' || $rule->operator == 'is_not_empty')
+            if ($rule->operator == 'is_empty' || $rule->operator == 'is_not_empty') {
                 $value = '';
-            else
+            } else {
                 $value = null;
+            }
         }
 
         return $value;
     }
 
     /**
-     * Determine if an operator (LIKE/IN) requires an array
+     * Determine if an operator (LIKE/IN) requires an array.
      *
      * @param $operator
+     *
      * @return bool
      */
     protected function operatorRequiresArray($operator)
@@ -229,8 +245,10 @@ class QueryBuilderParser {
      * @param $operator
      * @param stdClass $rule
      * @param $value
-     * @return string
+     *
      * @throws QBParseException
+     *
+     * @return string
      */
     protected function getCorrectValue($operator, stdClass $rule, $value)
     {
@@ -239,19 +257,22 @@ class QueryBuilderParser {
         $require_array = $this->operatorRequiresArray($operator);
 
         if ($require_array && !is_array($value)) {
-            throw new QBParseException("Field (${field}) should be an array, but it isn't.");
+            throw new QBParseException("Field ($field) should be an array, but it isn't.");
         } elseif (!$require_array && is_array($value)) {
-            if (count($value) !== 1)
-                throw new QBParseException("Field (${field}) should not be an array, but it is.");
+            if (count($value) !== 1) {
+                throw new QBParseException("Field ($field) should not be an array, but it is.");
+            }
             $value = $value[0];
         }
 
         if (!$require_array) {
-            if (isset($_sql_op['append']))
-                $value = $_sql_op['append'] . $value;
+            if (isset($_sql_op['append'])) {
+                $value = $_sql_op['append'].$value;
+            }
 
-            if (isset($_sql_op['prepend']))
-                $value = $value . $_sql_op['prepend'];
+            if (isset($_sql_op['prepend'])) {
+                $value = $value.$_sql_op['prepend'];
+            }
         }
 
         return $value;
@@ -265,15 +286,17 @@ class QueryBuilderParser {
      * Make sure that all the correct fields are in the rule object then add the expression to
      * the query that was given by the user to the QueryBuilder.
      *
-     * @param Builder $query
+     * @param Builder  $query
      * @param stdClass $rule
-     * @param string $queryCondition and/or...
-     * @return Builder
+     * @param string   $queryCondition and/or...
+     *
      * @throws QBParseException
+     *
+     * @return Builder
      */
-    protected function makeQuery(Builder $query, stdClass $rule, $queryCondition = "AND")
+    protected function makeQuery(Builder $query, stdClass $rule, $queryCondition = 'AND')
     {
-        /**
+        /*
          * Ensure that the value is correct for the rule, return query on exception
          */
         try {
@@ -282,7 +305,7 @@ class QueryBuilderParser {
             return $query;
         }
 
-        /**
+        /*
          * Convert the Operator (LIKE/NOT LIKE/GREATER THAN) given to us by QueryBuilder
          * into on one that we can use inside the SQL query
          */
@@ -300,20 +323,23 @@ class QueryBuilderParser {
     }
 
     /**
-     * Ensure that the value is correct for the rule, try and set it if it's not
+     * Ensure that the value is correct for the rule, try and set it if it's not.
      *
      * @param $rule
-     * @return null|string
+     *
      * @throws QBRuleException
      * @throws \timgws\QBParseException
+     *
+     * @return null|string
      */
     protected function getValueForQueryFromRule($rule)
     {
         /*
          * Make sure most of the common fields from the QueryBuilder have been added.
          */
-        if (!$this->checkRuleCorrect($rule))
+        if (!$this->checkRuleCorrect($rule)) {
             throw new QBRuleException();
+        }
 
         $value = $rule->value;
 
@@ -352,12 +378,14 @@ class QueryBuilderParser {
      * Some types of SQL Operators (ie, those that deal with lists/arrays) have specific requirements.
      * This function enforces those requirements.
      *
-     * @param Builder $query
+     * @param Builder  $query
      * @param stdClass $rule
-     * @param array $_sql_op
+     * @param array    $_sql_op
      * @param $value
-     * @return Builder
+     *
      * @throws QBParseException
+     *
+     * @return Builder
      */
     protected function makeQueryWhenArray(Builder $query, stdClass $rule, array $_sql_op, $value, $condition)
     {
@@ -366,8 +394,9 @@ class QueryBuilderParser {
         } elseif ($_sql_op['operator'] == 'NOT IN') {
             $query = $query->whereNotIn($rule->field, $value, $condition);
         } elseif ($_sql_op['operator'] == 'BETWEEN') {
-            if (count($value) !== 2)
+            if (count($value) !== 2) {
                 throw new QBParseException("{$rule->field} should be an array with only two items.");
+            }
 
             $query = $query->whereBetween($rule->field, $value);
         }
@@ -382,7 +411,8 @@ class QueryBuilderParser {
      * @return string
      * @throws QBParseException
      */
-    protected function validateCondition($condition) {
+    protected function validateCondition($condition)
+    {
         $condition = trim(strtolower($condition));
         if ($condition !== 'and' && $condition !== 'or')
             throw new QBParseException("Condition can only be one of: 'and', 'or'.");

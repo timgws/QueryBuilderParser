@@ -55,7 +55,7 @@ for filtering data, and seeing the results on the fly.
             return Datatable::query($queryBuilder)
                 ->showColumns($show_columns)
                 ->orderColumns($show_columns)
-                ->searchColumns($show_columns) 
+                ->searchColumns($show_columns)
                 ->make()
         }
     }

@@ -2,13 +2,6 @@
 
 namespace timgws\test;
 
-use timgws\QueryBuilderParser;
-use Illuminate\Database\Capsule\Manager as Capsule;
-use Illuminate\Database\Query\Builder;
-use Illuminate\Database\Connection as Connection;
-use Illuminate\Database\Connectors\MySqlConnector as MySQL;
-use Illuminate\Database\Query\Grammars\MySqlGrammar as MySQLGrammar;
-use Illuminate\Database\Query\Processors\MySqlProcessor as MySQLProcessor;
 use timgws\JoinSupportingQueryBuilderParser;
 
 class JoinSupportingQueryBuilderParserTest extends CommonQueryBuilderTests
@@ -20,31 +13,31 @@ class JoinSupportingQueryBuilderParserTest extends CommonQueryBuilderTests
 
     private function getJoinFields()
     {
-        return [
-            'join1' => [
-                'from_table' => 'master',
-                'from_col' => 'm_col',
-                'to_table' => 'subtable',
-                'to_col' => 's_col',
-                'to_value_column' => 's_value'
-            ],
-            'join2' => [
-                'from_table' => 'master2',
-                'from_col' => 'm2_col',
-                'to_table' => 'subtable2',
-                'to_col' => 's2_col',
-                'to_value_column' => 's2_value',
-                'not_exists' => true
-            ],
-            'joinwithclause' => [
-                'from_table' => 'master',
-                'from_col' => 'm_col',
-                'to_table' => 'subtable',
-                'to_col' => 's_col',
+        return array(
+            'join1' => array(
+                'from_table'      => 'master',
+                'from_col'        => 'm_col',
+                'to_table'        => 'subtable',
+                'to_col'          => 's_col',
                 'to_value_column' => 's_value',
-                'to_clause' => ['othercol' => 'value']
-            ]
-        ];
+            ),
+            'join2' => array(
+                'from_table'      => 'master2',
+                'from_col'        => 'm2_col',
+                'to_table'        => 'subtable2',
+                'to_col'          => 's2_col',
+                'to_value_column' => 's2_value',
+                'not_exists'      => true,
+            ),
+            'joinwithclause' => array(
+                'from_table'      => 'master',
+                'from_col'        => 'm_col',
+                'to_table'        => 'subtable',
+                'to_col'          => 's_col',
+                'to_value_column' => 's_value',
+                'to_clause'       => array('othercol' => 'value'),
+            ),
+        );
     }
 
     public function testJoinWhere()
@@ -155,6 +148,7 @@ class JoinSupportingQueryBuilderParserTest extends CommonQueryBuilderTests
     /**
      * @expectedException timgws\QBParseException
      * @expectedExceptionMessage s2_value should be an array with only two items.
+     *
      * @throws \timgws\QBParseException
      */
     public function testJoinNotExistsBetweenWithThreeItems()
@@ -173,6 +167,7 @@ class JoinSupportingQueryBuilderParserTest extends CommonQueryBuilderTests
     /**
      * @expectedException timgws\QBParseException
      * @expectedExceptionMessage Field (join4) does not exist in fields list
+     *
      * @throws \timgws\QBParseException
      */
     public function testJoinNotExistsBetweenWithFieldThatDoesNotExist()

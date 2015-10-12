@@ -2,17 +2,10 @@
 
 namespace timgws\test;
 
-use timgws\QueryBuilderParser;
-use Illuminate\Database\Capsule\Manager as Capsule;
 use Illuminate\Database\Query\Builder;
-use Illuminate\Database\Connection as Connection;
-use Illuminate\Database\Connectors\MySqlConnector as MySQL;
-use Illuminate\Database\Query\Grammars\MySqlGrammar as MySQLGrammar;
-use Illuminate\Database\Query\Processors\MySqlProcessor as MySQLProcessor;
 
 class QueryBuilderParserTest extends CommonQueryBuilderTests
 {
-
     public function testSimpleQuery()
     {
         $builder = $this->createQueryBuilder();
@@ -26,7 +19,7 @@ class QueryBuilderParserTest extends CommonQueryBuilderTests
     public function testMoreComplexQuery()
     {
         $builder = $this->createQueryBuilder();
-        $qb =  $this->getParserUnderTest();
+        $qb = $this->getParserUnderTest();
 
         $test = $qb->parse($this->json1, $builder);
 
@@ -36,7 +29,7 @@ class QueryBuilderParserTest extends CommonQueryBuilderTests
     public function testBetterThenTheLastTime()
     {
         $builder = $this->createQueryBuilder();
-        $qb =  $this->getParserUnderTest();
+        $qb = $this->getParserUnderTest();
 
         $json = '{"condition":"AND","rules":[{"id":"anchor_text","field":"anchor_text","type":"string","input":"text","operator":"contains","value":"www"},{"condition":"OR","rules":[{"id":"citation_flow","field":"citation_flow","type":"double","input":"text","operator":"greater_or_equal","value":"30"},{"id":"trust_flow","field":"trust_flow","type":"double","input":"text","operator":"greater_or_equal","value":"30"}]}]}';
         $test = $qb->parse($json, $builder);
@@ -142,7 +135,6 @@ class QueryBuilderParserTest extends CommonQueryBuilderTests
         //$this->assertEquals('select * where `price` < ? AND (`category` in (?, ?) OR (`name` = ? AND (`name` = ?)))', $builder->toSql());
         $this->assertEquals('select * where `price` < ? and (`category` in (?, ?) and (`name` = ? or `name` != ? or (`name` = ? and `name` = ?)))', $builder->toSql());
         //$this->assertEquals('/* This test currently fails. This should be fixed. */', $builder->toSql());
-
     }
 
     /**
@@ -158,11 +150,11 @@ class QueryBuilderParserTest extends CommonQueryBuilderTests
 
     private function getBetweenJSON($hasTwoValues = true)
     {
-        $v = '"2","3"' . ((!$hasTwoValues ? ',"3"' : ''));
+        $v = '"2","3"'.((!$hasTwoValues ? ',"3"' : ''));
 
         $json = '{"condition":"AND","rules":['
-            . '{"id":"price","field":"price","type":"double","input":"text",'
-            . '"operator":"between","value":[' . $v . ']}]}';
+            .'{"id":"price","field":"price","type":"double","input":"text",'
+            .'"operator":"between","value":['.$v.']}]}';
 
         return $json;
     }
@@ -182,24 +174,27 @@ class QueryBuilderParserTest extends CommonQueryBuilderTests
         $qb = $this->getParserUnderTest();
 
         $rules = '{"condition":"AND"}';
-        if ($hasRules)
+        if ($hasRules) {
             $rules = '{"condition":"AND","rules":[]}';
+        }
 
         $test = $qb->parse($rules, $builder);
 
         $this->assertEquals('select *', $builder->toSql());
     }
 
-    public function testNoRulesNoQuery() {
+    public function testNoRulesNoQuery()
+    {
         $this->noRulesOrEmptyRules(false);
         $this->noRulesOrEmptyRules(true);
     }
 
-    public function testValueBecomesNull() {
+    public function testValueBecomesNull()
+    {
         $v = '1.23';
         $json = '{"condition":"AND","rules":['
-            . '{"id":"price","field":"price","type":"double","input":"text",'
-            . '"operator":"is_null","value":[' . $v . ']}]}';
+            .'{"id":"price","field":"price","type":"double","input":"text",'
+            .'"operator":"is_null","value":['.$v.']}]}';
 
         $builder = $this->createQueryBuilder();
         $qb = $this->getParserUnderTest();
@@ -228,11 +223,12 @@ class QueryBuilderParserTest extends CommonQueryBuilderTests
     public function testBetweenMustBeArray($validJSON = true)
     {
         $json = '{"condition":"AND","rules":['
-            . '{"id":"price","field":"price","type":"double","input":"text",'
-            . '"operator":"between","value":"1"}]}';
+            .'{"id":"price","field":"price","type":"double","input":"text",'
+            .'"operator":"between","value":"1"}]}';
 
-        if (!$validJSON)
+        if (!$validJSON) {
             $json .= '[';
+        }
 
         $builder = $this->createQueryBuilder();
         $qb = $this->getParserUnderTest();
@@ -251,6 +247,7 @@ class QueryBuilderParserTest extends CommonQueryBuilderTests
     /**
      * This is a similar test to testBetweenOperator, however, this will throw an exception if
      * there is more then two values for the 'BETWEEN' operator.
+     *
      * @expectedException \timgws\QBParseException
      */
     public function testBetweenOperatorThrowsException()
@@ -312,18 +309,18 @@ class QueryBuilderParserTest extends CommonQueryBuilderTests
     }
 
     /**
-     * QBP should successfully parse OR conditions
+     * QBP should successfully parse OR conditions.
      *
      * @throws \timgws\QBParseException
      */
     public function testNestedOrGroup()
     {
-        $json = "{\"condition\":\"AND\",
-        \"rules\":[
-        {\"id\":\"email_pool\",\"field\":\"email_pool\",\"type\":\"string\",\"input\":\"select\",\"operator\":\"contains\",\"value\":[\"Fundraising\"]},
-        {\"condition\":\"OR\",\"rules\":[
-            {\"id\":\"geo_constituency\",\"field\":\"geo_constituency\",\"type\":\"string\",\"input\":\"select\",\"operator\":\"in\",\"value\":[\"Aberdeen South\"]},
-            {\"id\":\"geo_constituency\",\"field\":\"geo_constituency\",\"type\":\"string\",\"input\":\"select\",\"operator\":\"in\",\"value\":[\"Banbury\"]}]}]}";
+        $json = '{"condition":"AND",
+        "rules":[
+        {"id":"email_pool","field":"email_pool","type":"string","input":"select","operator":"contains","value":["Fundraising"]},
+        {"condition":"OR","rules":[
+            {"id":"geo_constituency","field":"geo_constituency","type":"string","input":"select","operator":"in","value":["Aberdeen South"]},
+            {"id":"geo_constituency","field":"geo_constituency","type":"string","input":"select","operator":"in","value":["Banbury"]}]}]}';
         $builder = $this->createQueryBuilder();
         $qb = $this->getParserUnderTest();
         $test = $qb->parse($json, $builder);

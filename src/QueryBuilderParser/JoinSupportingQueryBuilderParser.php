@@ -2,10 +2,9 @@
 
 namespace timgws;
 
-use Illuminate\Support\Facades\DB;
-use \stdClass;
-use \timgws\QBParseException;
-use \Illuminate\Database\Query\Builder;
+use Illuminate\Database\Query\Builder;
+use stdClass;
+use timgws\QBParseException;
 
 class JoinSupportingQueryBuilderParser extends QueryBuilderParser
 {
@@ -15,18 +14,17 @@ class JoinSupportingQueryBuilderParser extends QueryBuilderParser
     protected $joinFields;
 
     /**
-     * @param array $fields a list of all the fields that are allowed to be filtered by the QueryBuilder
+     * @param array $fields     a list of all the fields that are allowed to be filtered by the QueryBuilder
      * @param array $joinFields an associative array of the join fields keyed by fields name, with the following keys
-     * - from_table       The name of the master table
-     * - from_col         The column of the master table to use in the join
-     * - to_table         The name of the join table
-     * - to_col           The column of the join table to use
-     * - to_value_column  The column of the join table containing the value to use as a where clause
-     * - to_clause*       An additional clause to add to the join condition, compatible with $query->where($clause)
-     * - not_exists*      Only return rows which do not exist in the subclause
+     *                          - from_table       The name of the master table
+     *                          - from_col         The column of the master table to use in the join
+     *                          - to_table         The name of the join table
+     *                          - to_col           The column of the join table to use
+     *                          - to_value_column  The column of the join table containing the value to use as a where clause
+     *                          - to_clause*       An additional clause to add to the join condition, compatible with $query->where($clause)
+     *                          - not_exists*      Only return rows which do not exist in the subclause
      *
      * * optional field
-     *
      */
     public function __construct(array $fields = null, array $joinFields = null)
     {
@@ -42,17 +40,17 @@ class JoinSupportingQueryBuilderParser extends QueryBuilderParser
      * Make sure that all the correct fields are in the rule object then add the expression to
      * the query that was given by the user to the QueryBuilder.
      *
-     * @param Builder $query
+     * @param Builder  $query
      * @param stdClass $rule
-     * @param string $queryCondition the condition that will be used in the query
+     * @param string   $queryCondition the condition that will be used in the query
+     *
      * @throws QBParseException
      *
      * @return Builder
-     *
      */
-    protected function makeQuery(Builder $query, stdClass $rule, $queryCondition = "AND")
+    protected function makeQuery(Builder $query, stdClass $rule, $queryCondition = 'AND')
     {
-        /**
+        /*
          * Ensure that the value is correct for the rule, return query on exception
          */
         try {
@@ -66,7 +64,7 @@ class JoinSupportingQueryBuilderParser extends QueryBuilderParser
         if (is_array($this->joinFields) && array_key_exists($rule->field, $this->joinFields)) {
             $query = $this->buildSubclauseQuery($query, $rule, $value);
         } else {
-            /**
+            /*
              * Convert the Operator (LIKE/NOT LIKE/GREATER THAN) given to us by QueryBuilder
              * into on one that we can use inside the SQL query
              */
@@ -107,9 +105,9 @@ class JoinSupportingQueryBuilderParser extends QueryBuilderParser
 
                 $q = $query->selectRaw(1)
                     ->from($subclause['to_table'])
-                    ->whereRaw($subclause['to_table'] . '.' . $subclause['to_col']
-                        . ' = '
-                        . $subclause['from_table'] . '.' . $subclause['from_col']);
+                    ->whereRaw($subclause['to_table'].'.'.$subclause['to_col']
+                        .' = '
+                        .$subclause['from_table'].'.'.$subclause['from_col']);
 
                 if (array_key_exists('to_clause', $subclause)) {
                     $q->where($subclause['to_clause']);
@@ -122,8 +120,8 @@ class JoinSupportingQueryBuilderParser extends QueryBuilderParser
                         $q->whereNotIn($subclause['to_value_column'], $subclause['value']);
                     } elseif ($subclause['operator'] == 'BETWEEN') {
                         if (count($subclause['value']) !== 2) {
-                            throw new QBParseException($subclause['to_value_column'] .
-                                " should be an array with only two items.");
+                            throw new QBParseException($subclause['to_value_column'].
+                                ' should be an array with only two items.');
                         }
 
                         $q->whereBetween($subclause['to_value_column'], $subclause['value']);
@@ -134,6 +132,5 @@ class JoinSupportingQueryBuilderParser extends QueryBuilderParser
             }, 'and', $not);
 
         return $query;
-
     }
 }

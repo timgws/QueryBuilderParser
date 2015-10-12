@@ -1,6 +1,7 @@
-<?php namespace timgws;
+<?php
+
+namespace timgws;
 
 class QBParseException extends \Exception
 {
-
 }

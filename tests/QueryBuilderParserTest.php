@@ -310,4 +310,24 @@ class QueryBuilderParserTest extends CommonQueryBuilderTests
 
         $this->assertEquals(strtolower($expected_sql), strtolower($sql));
     }
+
+    /**
+     * QBP should successfully parse OR conditions
+     *
+     * @throws \timgws\QBParseException
+     */
+    public function testNestedOrGroup()
+    {
+        $json = "{\"condition\":\"AND\",
+        \"rules\":[
+        {\"id\":\"email_pool\",\"field\":\"email_pool\",\"type\":\"string\",\"input\":\"select\",\"operator\":\"contains\",\"value\":[\"Fundraising\"]},
+        {\"condition\":\"OR\",\"rules\":[
+            {\"id\":\"geo_constituency\",\"field\":\"geo_constituency\",\"type\":\"string\",\"input\":\"select\",\"operator\":\"in\",\"value\":[\"Aberdeen South\"]},
+            {\"id\":\"geo_constituency\",\"field\":\"geo_constituency\",\"type\":\"string\",\"input\":\"select\",\"operator\":\"in\",\"value\":[\"Banbury\"]}]}]}";
+        $builder = $this->createQueryBuilder();
+        $qb = $this->getParserUnderTest();
+        $test = $qb->parse($json, $builder);
+        $this->assertEquals('select * where `email_pool` LIKE ? and (`geo_constituency` in (?) or `geo_constituency` in (?))',
+            $builder->toSql());
+    }
 }

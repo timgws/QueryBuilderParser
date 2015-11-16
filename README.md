@@ -10,7 +10,7 @@ Test Coverage | [![Test Coverage](https://codeclimate.com/github/timgws/QueryBui
 **QueryBuilderParser** is designed mainly to be used inside Laravel projects, however it can be used outside Laravel
 projects by using Illuminate/Database.
 
-A simple to use query builder for the [jQuery QueryBuilder plugin](http://mistic100.github.io/jQuery-QueryBuilder/).
+A simple to use query builder for the [jQuery QueryBuilder plugin](http://querybuilder.js.org/demo.html#plugins).
 
 # Using QueryBuilderParser
 

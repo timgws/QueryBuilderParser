@@ -254,12 +254,10 @@ class QueryBuilderParser
         $condition = strtolower($queryCondition);
 
         if ($this->operatorRequiresArray($operator)) {
-            $query = $this->makeQueryWhenArray($query, $rule, $sqlOperator, $value, $condition);
-        } else {
-            $query = $query->where($rule->field, $sqlOperator['operator'], $value, $condition);
+            return $this->makeQueryWhenArray($query, $rule, $sqlOperator, $value, $condition);
         }
 
-        return $query;
+        return $query->where($rule->field, $sqlOperator['operator'], $value, $condition);
     }
 
     /**

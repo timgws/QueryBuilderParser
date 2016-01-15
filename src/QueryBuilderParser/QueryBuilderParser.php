@@ -259,7 +259,7 @@ class QueryBuilderParser
      *
      * @return mixed
      */
-    protected function getValueForQueryFromRule($rule)
+    protected function getValueForQueryFromRule(stdClass $rule)
     {
         /*
          * Make sure most of the common fields from the QueryBuilder have been added.

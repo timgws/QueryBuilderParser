@@ -118,7 +118,7 @@ class QueryBuilderParser
 
         $condition = $this->validateCondition($condition);
 
-        return $querybuilder->whereNested(function ($query) use (&$rule, &$querybuilder, &$condition) {
+        return $querybuilder->whereNested(function($query) use (&$rule, &$querybuilder, &$condition) {
             foreach ($rule->rules as $loopRule) {
                 $function = 'makeQuery';
 
@@ -197,26 +197,9 @@ class QueryBuilderParser
         $sqlOperator = $this->operator_sql[$rule->operator];
         $requireArray = $this->operatorRequiresArray($operator);
 
-        if ($requireArray && !is_array($value)) {
-            throw new QBParseException("Field ($field) should be an array, but it isn't.");
-        } elseif (!$requireArray && is_array($value)) {
-            if (count($value) !== 1) {
-                throw new QBParseException("Field ($field) should not be an array, but it is.");
-            }
-            $value = $value[0];
-        }
+        $value = $this->enforceArrayOrString($requireArray, $value, $field);
 
-        if (!$requireArray) {
-            if (isset($sqlOperator['append'])) {
-                $value = $sqlOperator['append'].$value;
-            }
-
-            if (isset($sqlOperator['prepend'])) {
-                $value = $value.$sqlOperator['prepend'];
-            }
-        }
-
-        return $value;
+        return $this->appendOperatorIfRequired($requireArray, $value, $sqlOperator);
     }
 
     /**
@@ -264,12 +247,12 @@ class QueryBuilderParser
     /**
      * Ensure that the value is correct for the rule, try and set it if it's not.
      *
-     * @param $rule
+     * @param stdClass $rule
      *
      * @throws QBRuleException
      * @throws \timgws\QBParseException
      *
-     * @return string|null
+     * @return mixed
      */
     protected function getValueForQueryFromRule($rule)
     {

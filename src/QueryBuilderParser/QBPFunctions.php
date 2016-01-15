@@ -80,4 +80,48 @@ trait QBPFunctions
 
         return $condition;
     }
+
+    /**
+      * Enforce wether the value for a given field is the correct type
+      *
+      * @param bool $requireArray value must be an array
+      * @param mixed $value the value we are checking against
+      * @param string $field the field that we are enforcing
+      */
+    protected function enforceArrayOrString($requireArray, $value, $field)
+    {
+        if ($requireArray && !is_array($value)) {
+            throw new QBParseException("Field ($field) should be an array, but it isn't.");
+        } elseif (!$requireArray && is_array($value)) {
+            if (count($value) !== 1) {
+                throw new QBParseException("Field ($field) should not be an array, but it is.");
+            }
+
+            return $value[0];
+        }
+
+        return $value;
+    }
+
+    /**
+      * Append or prepend a string to the query if required.
+      *
+      * @param bool $requireArray value must be an array
+      * @param mixed $value the value we are checking against
+      * @param mixed $sqlOperator
+      */
+    protected function appendOperatorIfRequired($requireArray, $value, $sqlOperator)
+    {
+        if (!$requireArray) {
+            if (isset($sqlOperator['append'])) {
+                $value = $sqlOperator['append'].$value;
+            }
+
+            if (isset($sqlOperator['prepend'])) {
+                $value = $value.$sqlOperator['prepend'];
+            }
+        }
+
+        return $value;
+    }
 }

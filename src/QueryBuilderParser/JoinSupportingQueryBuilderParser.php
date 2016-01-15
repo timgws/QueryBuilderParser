@@ -9,7 +9,7 @@ use timgws\QBParseException;
 class JoinSupportingQueryBuilderParser extends QueryBuilderParser
 {
     /**
-     * @var array an associative array of the join fields keyed by fields name, with the following keys
+     * @var null|array an associative array of the join fields keyed by fields name, with the following keys
      */
     protected $joinFields;
 
@@ -84,6 +84,13 @@ class JoinSupportingQueryBuilderParser extends QueryBuilderParser
         return $query;
     }
 
+    /**
+     * Build a subquery clause if there are join fields that have been specified.
+     *
+     * @param Builder $query
+     * @param stdClass $rule
+     * @param string|null $value
+     */
     private function buildSubclauseQuery($query, $rule, $value)
     {
         /*
@@ -103,7 +110,10 @@ class JoinSupportingQueryBuilderParser extends QueryBuilderParser
 
         // Create a where exists clause to join to the other table, and find results matching the criteria
         $query = $query->whereExists(
-            function (Builder $query) use ($subclause) {
+            /**
+             * @param Builder $query
+             */
+            function(Builder $query) use ($subclause) {
 
                 $q = $query->selectRaw(1)
                     ->from($subclause['to_table'])

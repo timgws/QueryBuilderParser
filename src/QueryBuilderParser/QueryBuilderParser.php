@@ -107,8 +107,8 @@ class QueryBuilderParser
      *
      * @param Builder $querybuilder
      * @param stdClass $rule
-     * @param null $condition
-     * @return mixed
+     * @param string|null $condition
+     * @return Builder
      */
     protected function createNestedQuery(Builder $querybuilder, stdClass $rule, $condition = null)
     {
@@ -269,7 +269,7 @@ class QueryBuilderParser
      * @throws QBRuleException
      * @throws \timgws\QBParseException
      *
-     * @return null|string
+     * @return string|null
      */
     protected function getValueForQueryFromRule($rule)
     {

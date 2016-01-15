@@ -125,26 +125,64 @@ class JoinSupportingQueryBuilderParser extends QueryBuilderParser
                     $q->where($subclause['to_clause']);
                 }
 
-                if ($subclause['require_array']) {
-                    if ($subclause['operator'] == 'IN') {
-                        $q->whereIn($subclause['to_value_column'], $subclause['value']);
-                    } elseif ($subclause['operator'] == 'NOT IN') {
-                        $q->whereNotIn($subclause['to_value_column'], $subclause['value']);
-                    } elseif ($subclause['operator'] == 'BETWEEN') {
-                        if (count($subclause['value']) !== 2) {
-                            throw new QBParseException($subclause['to_value_column'].
-                                ' should be an array with only two items.');
-                        }
-
-                        $q->whereBetween($subclause['to_value_column'], $subclause['value']);
-                    }
-                } else {
-                    $q->where($subclause['to_value_column'], $subclause['operator'], $subclause['value']);
-                }
+                $this->buildSubclauseInnerQuery($subclause, $q);
             },
             'and',
             $not);
 
         return $query;
+    }
+
+    /**
+      * The inner query for a subclause
+      *
+      * @see buildSubclauseQuery
+      * @param array $subclause
+      * @param Builder $q
+      */
+    private function buildSubclauseInnerQuery($subclause, Builder $q)
+    {
+        if ($subclause['require_array']) {
+            $this->buildRequireArrayQuery($subclause, $q);
+        } else {
+            $this->buildRequireNotArrayQuery($subclause, $q);
+        }
+    }
+
+    /**
+      * The inner query for a subclause when an array is requeired
+      *
+      * @see buildSubclauseInnerQuery
+      * @param array $subclause
+      * @param Builder $q
+      */
+    private function buildRequireArrayQuery($subclause, Builder $q)
+    {
+        if ($subclause['operator'] == 'IN') {
+            $q->whereIn($subclause['to_value_column'], $subclause['value']);
+        } elseif ($subclause['operator'] == 'NOT IN') {
+            $q->whereNotIn($subclause['to_value_column'], $subclause['value']);
+        } elseif ($subclause['operator'] == 'BETWEEN') {
+            if (count($subclause['value']) !== 2) {
+                throw new QBParseException($subclause['to_value_column'].
+                    ' should be an array with only two items.');
+            }
+
+            $q->whereBetween($subclause['to_value_column'], $subclause['value']);
+        }
+
+        return $q;
+    }
+
+    /**
+      * The inner query for a subclause when an array is not requeired
+      *
+      * @see buildSubclauseInnerQuery
+      * @param array $subclause
+      * @param Builder $q
+      */
+    private function buildRequireNotArrayQuery($subclause, Builder $q)
+    {
+        return $q->where($subclause['to_value_column'], $subclause['operator'], $subclause['value']);
     }
 }

@@ -34,15 +34,8 @@ class QueryBuilderParser
      */
     public function parse($json, Builder $querybuilder)
     {
-        $query = json_decode($json);
-
-        if (json_last_error()) {
-            throw new QBParseException('JSON parsing threw an error: '.json_last_error_msg());
-        }
-
-        if (!is_object($query)) {
-            throw new QBParseException('The query is not valid JSON');
-        }
+        // do a JSON decode (throws exceptions if there is a JSON error...)
+        $query = $this->decodeJSON($json);
 
         // This can happen if the querybuilder had no rules...
         if (!isset($query->rules) || !is_array($query->rules)) {

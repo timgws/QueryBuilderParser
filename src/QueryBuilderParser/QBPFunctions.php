@@ -82,12 +82,12 @@ trait QBPFunctions
     }
 
     /**
-      * Enforce wether the value for a given field is the correct type
-      *
-      * @param bool $requireArray value must be an array
-      * @param mixed $value the value we are checking against
-      * @param string $field the field that we are enforcing
-      */
+     * Enforce wether the value for a given field is the correct type
+     *
+     * @param bool $requireArray value must be an array
+     * @param mixed $value the value we are checking against
+     * @param string $field the field that we are enforcing
+     */
     protected function enforceArrayOrString($requireArray, $value, $field)
     {
         if ($requireArray && !is_array($value)) {
@@ -104,12 +104,12 @@ trait QBPFunctions
     }
 
     /**
-      * Append or prepend a string to the query if required.
-      *
-      * @param bool $requireArray value must be an array
-      * @param mixed $value the value we are checking against
-      * @param mixed $sqlOperator
-      */
+     * Append or prepend a string to the query if required.
+     *
+     * @param bool $requireArray value must be an array
+     * @param mixed $value the value we are checking against
+     * @param mixed $sqlOperator
+     */
     protected function appendOperatorIfRequired($requireArray, $value, $sqlOperator)
     {
         if (!$requireArray) {
@@ -123,5 +123,26 @@ trait QBPFunctions
         }
 
         return $value;
+    }
+
+    /**
+     * Decode the given JSON
+     *
+     * @param string icomming json
+     * @throws QBParseException
+     */
+    private function decodeJSON($json)
+    {
+        $query = json_decode($json);
+
+        if (json_last_error()) {
+            throw new QBParseException('JSON parsing threw an error: '.json_last_error_msg());
+        }
+
+        if (!is_object($query)) {
+            throw new QBParseException('The query is not valid JSON');
+        }
+
+        return $query;
     }
 }

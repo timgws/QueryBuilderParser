@@ -143,11 +143,7 @@ class QueryBuilderParser
      */
     protected function checkRuleCorrect(stdClass $rule)
     {
-        if (!isset($rule->operator) || !isset($rule->id) || !isset($rule->field)) {
-            return false;
-        }
-
-        if (!isset($rule->input) || !isset($rule->type)) {
+        if (!isset($rule->operator, $rule->id, $rule->field, $rule->input, $rule->type)) {
             return false;
         }
 

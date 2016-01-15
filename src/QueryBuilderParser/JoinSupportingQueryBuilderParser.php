@@ -66,19 +66,7 @@ class JoinSupportingQueryBuilderParser extends QueryBuilderParser
         if (is_array($this->joinFields) && array_key_exists($rule->field, $this->joinFields)) {
             $query = $this->buildSubclauseQuery($query, $rule, $value);
         } else {
-            /*
-             * Convert the Operator (LIKE/NOT LIKE/GREATER THAN) given to us by QueryBuilder
-             * into on one that we can use inside the SQL query
-             */
-            $sqlOperator = $this->operator_sql[$rule->operator];
-            $operator = $sqlOperator['operator'];
-            $requireArray = $this->operatorRequiresArray($operator);
-
-            if ($requireArray) {
-                $query = $this->makeQueryWhenArray($query, $rule, $sqlOperator, $value, $condition);
-            } else {
-                $query = $query->where($rule->field, $sqlOperator['operator'], $value, $condition);
-            }
+            $this->convertIncomingQBtoQuery($query, $rule, $value, $condition);
         }
 
         return $query;

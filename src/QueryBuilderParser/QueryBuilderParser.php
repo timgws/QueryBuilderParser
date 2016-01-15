@@ -225,6 +225,22 @@ class QueryBuilderParser
             return $query;
         }
 
+        return $this->convertIncomingQBtoQuery($query, $rule, $value, $queryCondition);
+    }
+
+    /**
+     * Convert an incomming rule from jQuery QueryBuilder to the Eloquent Querybuilder
+     *
+     * (This used to be part of makeQuery, where the name made sense, but I pulled it
+     * out to reduce some duplicated code inside JoinSupportingQueryBuilder)
+     *
+     * @param Builder  $query
+     * @param stdClass $rule
+     * @param mixed    the value that needs to be queried in the database.
+     * @param string   $queryCondition and/or...
+     */
+    protected function convertIncomingQBtoQuery(Builder $query, stdClass $rule, $value, $queryCondition = 'AND')
+    {
         /*
          * Convert the Operator (LIKE/NOT LIKE/GREATER THAN) given to us by QueryBuilder
          * into on one that we can use inside the SQL query

@@ -167,8 +167,9 @@ class QueryBuilderParser
      */
     protected function operatorValueWhenNotAcceptingOne(stdClass $rule)
     {
+        $value = null;
+
         if ($this->operators[$rule->operator]['accept_values'] === false) {
-            $value = null;
             if ($rule->operator == 'is_empty' || $rule->operator == 'is_not_empty') {
                 $value = '';
             }
@@ -319,14 +320,14 @@ class QueryBuilderParser
      * @param Builder  $query
      * @param stdClass $rule
      * @param array    $sqlOperator
-     * @param string   $value
+     * @param array    $value
      * @param string   $condition
      *
      * @throws QBParseException
      *
      * @return Builder
      */
-    protected function makeQueryWhenArray(Builder $query, stdClass $rule, array $sqlOperator, $value, $condition)
+    protected function makeQueryWhenArray(Builder $query, stdClass $rule, array $sqlOperator, array $value, $condition)
     {
         if ($sqlOperator['operator'] == 'IN') {
             $query = $query->whereIn($rule->field, $value, $condition);

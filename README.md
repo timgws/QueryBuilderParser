@@ -32,6 +32,15 @@ A simple to use query builder for the [jQuery QueryBuilder plugin](http://queryb
     return Response::JSON($rows);
 ```
 
+![jQuery QueryBuilder](/querybuilder.png?raw=true "jQuery QueryBuilder")
+
+This query when posted will create the following SQL query:
+
+```sql
+SELECT * FROM table_of_data_to_integrate WHERE `name` LIKE '%tim%' AND `email` LIKE '%@gmail.com'
+```
+
+
 ## Integrating with jQuery Datatables
 
 Mixed with Datatables, jQuery QueryBuilder makes for some true awesome, allowing limitless options

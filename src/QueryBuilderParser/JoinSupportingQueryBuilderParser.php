@@ -64,12 +64,10 @@ class JoinSupportingQueryBuilderParser extends QueryBuilderParser
         $condition = strtolower($queryCondition);
 
         if (is_array($this->joinFields) && array_key_exists($rule->field, $this->joinFields)) {
-            $query = $this->buildSubclauseQuery($query, $rule, $value);
-        } else {
-            $this->convertIncomingQBtoQuery($query, $rule, $value, $condition);
+            return $this->buildSubclauseQuery($query, $rule, $value);
         }
 
-        return $query;
+        return $this->convertIncomingQBtoQuery($query, $rule, $value, $condition);
     }
 
     /**
@@ -78,6 +76,7 @@ class JoinSupportingQueryBuilderParser extends QueryBuilderParser
      * @param Builder $query
      * @param stdClass $rule
      * @param string|null $value
+     * @return Builder the query builder object
      */
     private function buildSubclauseQuery($query, $rule, $value)
     {
@@ -116,61 +115,66 @@ class JoinSupportingQueryBuilderParser extends QueryBuilderParser
                 $this->buildSubclauseInnerQuery($subclause, $q);
             },
             'and',
-            $not);
+            $not
+        );
 
         return $query;
     }
 
     /**
-      * The inner query for a subclause
-      *
-      * @see buildSubclauseQuery
-      * @param array $subclause
-      * @param Builder $q
-      */
-    private function buildSubclauseInnerQuery($subclause, Builder $q)
+     * The inner query for a subclause
+     *
+     * @see buildSubclauseQuery
+     * @param array $subclause
+     * @param Builder $q
+     * @return Builder the query builder object
+     */
+    private function buildSubclauseInnerQuery($subclause, Builder $query)
     {
         if ($subclause['require_array']) {
-            $this->buildRequireArrayQuery($subclause, $q);
-        } else {
-            $this->buildRequireNotArrayQuery($subclause, $q);
+            return $this->buildRequireArrayQuery($subclause, $query);
         }
+
+        $this->buildRequireNotArrayQuery($subclause, $query);
     }
 
     /**
-      * The inner query for a subclause when an array is requeired
-      *
-      * @see buildSubclauseInnerQuery
-      * @param array $subclause
-      * @param Builder $q
-      */
-    private function buildRequireArrayQuery($subclause, Builder $q)
+     * The inner query for a subclause when an array is required
+     *
+     * @see buildSubclauseInnerQuery
+     * @throws QBParseException when an invalid array is passed.
+     * @param array $subclause
+     * @param Builder $query
+     * @return Builder the query builder object
+     */
+    private function buildRequireArrayQuery($subclause, Builder $query)
     {
         if ($subclause['operator'] == 'IN') {
-            $q->whereIn($subclause['to_value_column'], $subclause['value']);
+            $query->whereIn($subclause['to_value_column'], $subclause['value']);
         } elseif ($subclause['operator'] == 'NOT IN') {
-            $q->whereNotIn($subclause['to_value_column'], $subclause['value']);
+            $query->whereNotIn($subclause['to_value_column'], $subclause['value']);
         } elseif ($subclause['operator'] == 'BETWEEN') {
             if (count($subclause['value']) !== 2) {
                 throw new QBParseException($subclause['to_value_column'].
                     ' should be an array with only two items.');
             }
 
-            $q->whereBetween($subclause['to_value_column'], $subclause['value']);
+            $query->whereBetween($subclause['to_value_column'], $subclause['value']);
         }
 
-        return $q;
+        return $query;
     }
 
     /**
-      * The inner query for a subclause when an array is not requeired
-      *
-      * @see buildSubclauseInnerQuery
-      * @param array $subclause
-      * @param Builder $q
-      */
-    private function buildRequireNotArrayQuery($subclause, Builder $q)
+     * The inner query for a subclause when an array is not requeired
+     *
+     * @see buildSubclauseInnerQuery
+     * @param array $subclause
+     * @param Builder $query
+     * @return Builder the query builder object
+     */
+    private function buildRequireNotArrayQuery($subclause, Builder $query)
     {
-        return $q->where($subclause['to_value_column'], $subclause['operator'], $subclause['value']);
+        return $query->where($subclause['to_value_column'], $subclause['operator'], $subclause['value']);
     }
 }

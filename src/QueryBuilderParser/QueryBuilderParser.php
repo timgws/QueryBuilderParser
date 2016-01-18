@@ -229,7 +229,7 @@ class QueryBuilderParser
      *
      * @param Builder  $query
      * @param stdClass $rule
-     * @param mixed    the value that needs to be queried in the database.
+     * @param mixed    $value the value that needs to be queried in the database.
      * @param string   $queryCondition and/or...
      */
     protected function convertIncomingQBtoQuery(Builder $query, stdClass $rule, $value, $queryCondition = 'AND')

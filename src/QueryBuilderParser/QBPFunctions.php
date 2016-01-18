@@ -6,7 +6,10 @@ use \stdClass;
 
 trait QBPFunctions
 {
-    abstract function checkRuleCorrect($rule);
+    /**
+     * @param stdClass $rule
+     */
+    abstract function checkRuleCorrect(stdClass $rule);
 
     protected $operators = array (
         'equal'            => array ('accept_values' => true,  'apply_to' => ['string', 'number', 'datetime']),
@@ -136,7 +139,7 @@ trait QBPFunctions
     /**
      * Decode the given JSON
      *
-     * @param string icomming json
+     * @param string incomming json
      * @throws QBParseException
      * @return stdClass
      */
@@ -219,7 +222,7 @@ trait QBPFunctions
      * @see makeQueryWhenArray
      * @param Builder $query
      * @param stdClass $rule
-     * @param array $sqlOperator
+     * @param string $operator
      * @param array $value
      * @param string $condition
      * @return Builder

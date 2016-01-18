@@ -7,6 +7,8 @@ use timgws\test\QueryBuilderParserTest;
 
 trait QBPFunctions
 {
+    abstract function checkRuleCorrect($rule);
+
     protected $operators = array (
         'equal'            => array ('accept_values' => true,  'apply_to' => ['string', 'number', 'datetime']),
         'not_equal'        => array ('accept_values' => true,  'apply_to' => ['string', 'number', 'datetime']),
@@ -203,7 +205,7 @@ trait QBPFunctions
      */
     protected function makeQueryWhenArray(Builder $query, stdClass $rule, array $sqlOperator, array $value, $condition)
     {
-        if ($sqlOperator['operator'] == 'IN' or $sqlOperator['operator'] == 'NOT IN') {
+        if ($sqlOperator['operator'] == 'IN' || $sqlOperator['operator'] == 'NOT IN') {
             return $this->makeArrayQueryIn($query, $rule, $sqlOperator, $value, $condition);
         } elseif ($sqlOperator['operator'] == 'BETWEEN') {
             return $this->makeArrayQueryBetween($query, $rule, $sqlOperator, $value, $condition);

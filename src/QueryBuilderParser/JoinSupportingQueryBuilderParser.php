@@ -135,7 +135,7 @@ class JoinSupportingQueryBuilderParser extends QueryBuilderParser
             return $this->buildRequireArrayQuery($subclause, $query);
         }
 
-        $this->buildRequireNotArrayQuery($subclause, $query);
+        return $this->buildRequireNotArrayQuery($subclause, $query);
     }
 
     /**

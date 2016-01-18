@@ -1,6 +1,10 @@
 <?php
 namespace timgws;
 
+use \Illuminate\Database\Query\Builder;
+use \stdClass;
+use timgws\test\QueryBuilderParserTest;
+
 trait QBPFunctions
 {
     protected $operators = array (
@@ -87,6 +91,8 @@ trait QBPFunctions
      * @param bool $requireArray value must be an array
      * @param mixed $value the value we are checking against
      * @param string $field the field that we are enforcing
+     * @return mixed value after enforcement
+     * @throws QBParseException if value is not a correct type
      */
     protected function enforceArrayOrString($requireArray, $value, $field)
     {
@@ -109,6 +115,7 @@ trait QBPFunctions
      * @param bool $requireArray value must be an array
      * @param mixed $value the value we are checking against
      * @param mixed $sqlOperator
+     * @return mixed $value
      */
     protected function appendOperatorIfRequired($requireArray, $value, $sqlOperator)
     {
@@ -130,6 +137,7 @@ trait QBPFunctions
      *
      * @param string icomming json
      * @throws QBParseException
+     * @return stdClass
      */
     private function decodeJSON($json)
     {
@@ -144,5 +152,105 @@ trait QBPFunctions
         }
 
         return $query;
+    }
+
+    /**
+     * get a value for a given rule.
+     *
+     * throws an exception if the rule is not correct.
+     *
+     * @param $rule
+     * @throws QBRuleException
+     */
+    private function getRuleValue($rule)
+    {
+        if (!$this->checkRuleCorrect($rule)) {
+            throw new QBRuleException();
+        }
+
+        return $rule->value;
+    }
+
+    /**
+     * Check that a given field is in the allowed list if set.
+     *
+     * @param $fields
+     * @param $field
+     * @throws QBParseException
+     */
+    private function ensureFieldIsAllowed($fields, $field)
+    {
+        if (is_array($fields) && !in_array($field, $fields)) {
+            throw new QBParseException("Field ({$field}) does not exist in fields list");
+        }
+    }
+
+    /**
+     * makeQuery, for arrays.
+     *
+     * Some types of SQL Operators (ie, those that deal with lists/arrays) have specific requirements.
+     * This function enforces those requirements.
+     *
+     * @param Builder  $query
+     * @param stdClass $rule
+     * @param array    $sqlOperator
+     * @param array    $value
+     * @param string   $condition
+     *
+     * @throws QBParseException
+     *
+     * @return Builder
+     */
+    protected function makeQueryWhenArray(Builder $query, stdClass $rule, array $sqlOperator, array $value, $condition)
+    {
+        if ($sqlOperator['operator'] == 'IN' or $sqlOperator['operator'] == 'NOT IN') {
+            return $this->makeArrayQueryIn($query, $rule, $sqlOperator, $value, $condition);
+        } elseif ($sqlOperator['operator'] == 'BETWEEN') {
+            return $this->makeArrayQueryBetween($query, $rule, $sqlOperator, $value, $condition);
+        }
+
+        throw new QBParseException('makeQueryWhenArray could not return a value');
+    }
+
+    /**
+     * makeArrayQueryIn, when the query is an IN or NOT IN...
+     *
+     * @see makeQueryWhenArray
+     * @param Builder $query
+     * @param stdClass $rule
+     * @param array $sqlOperator
+     * @param array $value
+     * @param $condition
+     * @return Builder
+     */
+    private function makeArrayQueryIn(Builder $query, stdClass $rule, array $sqlOperator, array $value, $condition)
+    {
+        if ($sqlOperator['operator'] == 'NOT IN') {
+            return $query->whereNotIn($rule->field, $value, $condition);
+        }
+
+        return $query->whereIn($rule->field, $value, $condition);
+    }
+
+
+    /**
+     * makeArrayQueryBetween, when the query is an IN or NOT IN...
+     *
+     * @see makeQueryWhenArray
+     * @param Builder $query
+     * @param stdClass $rule
+     * @param array $sqlOperator
+     * @param array $value
+     * @param $condition
+     * @throws QBParseException when more then two items given for the between
+     * @return Builder
+     */
+    private function makeArrayQueryBetween(Builder $query, stdClass $rule, array $sqlOperator, array $value, $condition)
+    {
+        if (count($value) !== 2) {
+            throw new QBParseException("{$rule->field} should be an array with only two items.");
+        }
+
+        return $query->whereBetween($rule->field, $value);
     }
 }

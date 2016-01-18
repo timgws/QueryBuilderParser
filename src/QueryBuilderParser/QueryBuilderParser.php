@@ -3,8 +3,8 @@
 namespace timgws;
 
 use \stdClass;
-use \timgws\QBParseException;
 use \Illuminate\Database\Query\Builder;
+use \timgws\QBParseException;
 
 class QueryBuilderParser
 {
@@ -231,6 +231,7 @@ class QueryBuilderParser
      * @param stdClass $rule
      * @param mixed    $value the value that needs to be queried in the database.
      * @param string   $queryCondition and/or...
+     * @return Builder
      */
     protected function convertIncomingQBtoQuery(Builder $query, stdClass $rule, $value, $queryCondition = 'AND')
     {
@@ -264,18 +265,12 @@ class QueryBuilderParser
         /*
          * Make sure most of the common fields from the QueryBuilder have been added.
          */
-        if (!$this->checkRuleCorrect($rule)) {
-            throw new QBRuleException();
-        }
-
-        $value = $rule->value;
+        $value = $this->getRuleValue($rule);
 
         /*
          * The field must exist in our list.
          */
-        if (is_array($this->fields) && !in_array($rule->field, $this->fields)) {
-            throw new QBParseException("Field ({$rule->field}) does not exist in fields list");
-        }
+        $this->ensureFieldIsAllowed($this->fields, $rule->field);
 
         /*
          * If the SQL Operator is set not to have a value, make sure that we set the value to null.
@@ -297,38 +292,5 @@ class QueryBuilderParser
         $value = $this->getCorrectValue($operator, $rule, $value);
 
         return $value;
-    }
-
-    /**
-     * makeQuery, for arrays.
-     *
-     * Some types of SQL Operators (ie, those that deal with lists/arrays) have specific requirements.
-     * This function enforces those requirements.
-     *
-     * @param Builder  $query
-     * @param stdClass $rule
-     * @param array    $sqlOperator
-     * @param array    $value
-     * @param string   $condition
-     *
-     * @throws QBParseException
-     *
-     * @return Builder
-     */
-    protected function makeQueryWhenArray(Builder $query, stdClass $rule, array $sqlOperator, array $value, $condition)
-    {
-        if ($sqlOperator['operator'] == 'IN') {
-            $query = $query->whereIn($rule->field, $value, $condition);
-        } elseif ($sqlOperator['operator'] == 'NOT IN') {
-            $query = $query->whereNotIn($rule->field, $value, $condition);
-        } elseif ($sqlOperator['operator'] == 'BETWEEN') {
-            if (count($value) !== 2) {
-                throw new QBParseException("{$rule->field} should be an array with only two items.");
-            }
-
-            $query = $query->whereBetween($rule->field, $value);
-        }
-
-        return $query;
     }
 }

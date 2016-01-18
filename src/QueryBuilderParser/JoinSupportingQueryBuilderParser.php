@@ -126,7 +126,7 @@ class JoinSupportingQueryBuilderParser extends QueryBuilderParser
      *
      * @see buildSubclauseQuery
      * @param array $subclause
-     * @param Builder $q
+     * @param Builder $query
      * @return Builder the query builder object
      */
     private function buildSubclauseInnerQuery($subclause, Builder $query)

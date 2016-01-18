@@ -52,9 +52,23 @@ class QueryBuilderParserTest extends CommonQueryBuilderTests
         $builder = $this->createQueryBuilder();
         $qb = $this->getParserUnderTest();
 
-        $qb->parse($this->makeJSONForInNotInTest(false), $builder);
+        $qb->parse($this->makeJSONForInNotInTest('not_in'), $builder);
 
         $this->assertEquals('select * where `price` < ? and (`category` not in (?, ?))', $builder->toSql());
+    }
+
+    /**
+     * @expectedException \timgws\QBParseException
+     * @expectedExceptionMessage Field (category) should not be an array, but it is.
+     */
+    public function testCategoryInvalidArray()
+    {
+        $builder = $this->createQueryBuilder();
+        $qb = $this->getParserUnderTest();
+
+        $qb->parse($this->makeJSONForInNotInTest('contains'), $builder);
+
+        $this->assertEquals('select * where `price` < ?', $builder->toSql());
     }
 
     public function testManyNestedQuery()

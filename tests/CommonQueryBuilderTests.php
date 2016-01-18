@@ -63,13 +63,8 @@ class CommonQueryBuilderTests extends \PHPUnit_Framework_TestCase
         return $builder;
     }
 
-    protected function makeJSONForInNotInTest($is_in = true)
+    protected function makeJSONForInNotInTest($operator = 'in')
     {
-        $operator = 'not_in';
-        if ($is_in) {
-            $operator = 'in';
-        }
-
         return '{
            "condition":"AND",
            "rules":[

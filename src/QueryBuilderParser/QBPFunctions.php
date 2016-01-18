@@ -251,6 +251,6 @@ trait QBPFunctions
             throw new QBParseException("{$rule->field} should be an array with only two items.");
         }
 
-        return $query->whereBetween($rule->field, $value);
+        return $query->whereBetween($rule->field, $value, $condition);
     }
 }

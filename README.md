@@ -40,6 +40,7 @@ This query when posted will create the following SQL query:
 SELECT * FROM table_of_data_to_integrate WHERE `name` LIKE '%tim%' AND `email` LIKE '%@gmail.com'
 ```
 
+# Integration examples
 
 ## Integrating with jQuery Datatables
 
@@ -114,6 +115,42 @@ On the client side, a little bit of magic is required to make everything work.
         })
     });
 ```
+
+## Using JoinSupportingQueryBuilderParser
+
+`JoinSupportingQueryBuilderParser` is a version of `QueryBuilderParser` that supports building even more complex queries.
+
+```php
+    $joinFields = array(
+        'join1' => array(
+            'from_table'      => 'master',
+            'from_col'        => 'm_col',
+            'to_table'        => 'subtable',
+            'to_col'          => 's_col',
+            'to_value_column' => 's_value',
+        ),
+        'join2' => array(
+            'from_table'      => 'master2',
+            'from_col'        => 'm2_col',
+            'to_table'        => 'subtable2',
+            'to_col'          => 's2_col',
+            'to_value_column' => 's2_value',
+            'not_exists'      => true,
+        )
+    );
+
+    $table = DB::table('table_of_data_to_integrate');
+    $jsqbp = new JoinSupportingQueryBuilderParser($fields, $this->getJoinFields());
+    $test = $parser->parse($json, $builder);
+```
+
+Which will build an SQL query similar to:
+
+```sql
+select * where exists (select 1 from `subtable` where subtable.s_col = master.m_col and `s_value` < ?)
+```
+
+For simple queries, `QueryBuilderParser` should be enough.
 
 # Exporting CSV files
 

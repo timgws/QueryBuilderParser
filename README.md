@@ -23,7 +23,7 @@ A simple to use query builder for the [jQuery QueryBuilder plugin](http://queryb
     $qbp = new QueryBuilderParser(
         // provide here a list of allowable rows from the query builder.
         // NOTE: if a row is listed here, you will be able to create limits on that row from QBP.
-        array( 'row1', 'row2', 'row3' )
+        array( 'name', 'email' )
     );
 
     $query = $qbp->parse($input['querybuilder'], $table);

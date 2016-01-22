@@ -90,7 +90,7 @@ trait QBPFunctions
     }
 
     /**
-     * Enforce wether the value for a given field is the correct type
+     * Enforce whether the value for a given field is the correct type
      *
      * @param bool $requireArray value must be an array
      * @param mixed $value the value we are checking against
@@ -100,17 +100,49 @@ trait QBPFunctions
      */
     protected function enforceArrayOrString($requireArray, $value, $field)
     {
-        if ($requireArray && !is_array($value)) {
-            throw new QBParseException("Field ($field) should be an array, but it isn't.");
-        } elseif (!$requireArray && is_array($value)) {
-            if (count($value) !== 1) {
-                throw new QBParseException("Field ($field) should not be an array, but it is.");
-            }
+        $this->checkFieldIsAnArray($requireArray, $value, $field);
 
-            return $value[0];
+        if (!$requireArray && is_array($value)) {
+            return $this->convertArrayToFlatValue($field, $value);
         }
 
         return $value;
+    }
+
+    /**
+     * Ensure that a given field is an array if required.
+     *
+     * @see enforceArrayOrString
+     * @param $requireArray
+     * @param $value
+     * @param $field
+     * @throws QBParseException
+     */
+    protected function checkFieldIsAnArray($requireArray, $value, $field)
+    {
+        if ($requireArray && !is_array($value)) {
+            throw new QBParseException("Field ($field) should be an array, but it isn't.");
+        }
+    }
+
+    /**
+     * Convert an array with just one item to a string.
+     *
+     * In some instances, and array may be given when we want a string.
+     *
+     * @see enforceArrayOrString
+     * @param $field
+     * @param $value
+     * @return mixed
+     * @throws QBParseException
+     */
+    protected function convertArrayToFlatValue($field, $value)
+    {
+        if (count($value) !== 1) {
+            throw new QBParseException("Field ($field) should not be an array, but it is.");
+        }
+
+        return $value[0];
     }
 
     /**
@@ -139,7 +171,7 @@ trait QBPFunctions
     /**
      * Decode the given JSON
      *
-     * @param string incomming json
+     * @param string incoming json
      * @throws QBParseException
      * @return stdClass
      */

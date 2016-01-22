@@ -9,7 +9,7 @@ trait QBPFunctions
     /**
      * @param stdClass $rule
      */
-    abstract function checkRuleCorrect(stdClass $rule);
+    abstract protected function checkRuleCorrect(stdClass $rule);
 
     protected $operators = array (
         'equal'            => array ('accept_values' => true,  'apply_to' => ['string', 'number', 'datetime']),

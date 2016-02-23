@@ -250,6 +250,48 @@ class QueryBuilderParserTest extends CommonQueryBuilderTests
         $this->assertCount(0, $sqlBindings);
     }
 
+    private function beginsOrEndsWithTest($begins = 'begins', $not = false)
+    {
+        $operator = (!$not ? '' : 'not_') . $begins . '_with';
+        $like = $not ? 'NOT LIKE' : 'LIKE';
+
+        $builder = $this->createQueryBuilder();
+        $qb = $this->getParserUnderTest();
+
+        $json = '{"condition":"AND","rules":[{"id":"anchor_text","field":"anchor_text","type":"string","input":"text","operator":"' . $operator . '","value":"www"}]}';
+        $test = $qb->parse($json, $builder);
+
+        $bindings_are = [];
+        if ($begins == 'begins') {
+            $bindings_are = ['www%'];
+        } else {
+            $bindings_are = ['%www'];
+        }
+
+        $this->assertEquals('select * where `anchor_text` ' . $like . ' ?', $builder->toSql());
+        $this->assertEquals($bindings_are, $builder->getBindings());
+    }
+
+    public function testBeginsWith()
+    {
+        $this->beginsOrEndsWithTest('begins', false);
+    }
+
+    public function testBeginsNotWith()
+    {
+        $this->beginsOrEndsWithTest('begins', true);
+    }
+
+    public function testEndsWith()
+    {
+        $this->beginsOrEndsWithTest('ends', false);
+    }
+
+    public function testEndsNotWith()
+    {
+        $this->beginsOrEndsWithTest('ends', true);
+    }
+
     /**
      * @expectedException timgws\QBParseException
      * @expectedMessage Field (price) should not be an array, but it is.

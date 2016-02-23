@@ -113,9 +113,9 @@ trait QBPFunctions
      * Ensure that a given field is an array if required.
      *
      * @see enforceArrayOrString
-     * @param $requireArray
+     * @param boolean $requireArray
      * @param $value
-     * @param $field
+     * @param string $field
      * @throws QBParseException
      */
     protected function checkFieldIsAnArray($requireArray, $value, $field)
@@ -131,7 +131,7 @@ trait QBPFunctions
      * In some instances, and array may be given when we want a string.
      *
      * @see enforceArrayOrString
-     * @param $field
+     * @param string $field
      * @param $value
      * @return mixed
      * @throws QBParseException

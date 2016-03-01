@@ -40,6 +40,44 @@ This query when posted will create the following SQL query:
 SELECT * FROM table_of_data_to_integrate WHERE `name` LIKE '%tim%' AND `email` LIKE '%@gmail.com'
 ```
 
+## Getting results from MongoDB
+```php
+    use timgws\QueryBuilderParser;
+
+    $table = DB::collection('data');
+    $qbp = new QueryBuilderParser(
+        // provide here a list of allowable rows from the query builder.
+        // NOTE: if a row is listed here, you will be able to create limits on that row from QBP.
+        array( 'name', 'email' )
+    );
+
+    $query = $qbp->parse($input['querybuilder'], $table);
+
+    $rows = $query->get();
+    return Response::JSON($rows);
+```
+
+This query when posted will create the following MongoDB query:
+
+```json
+    {
+      "$and": [
+        {
+          "name": {
+            "$regex": "tim"
+          }
+        },
+        {
+          "name": {
+            "$regex": "@gmail\\.com$"
+          }
+        }
+      ]
+    }
+```
+
+Note that to use this you will need to install and configure `jenssegers/mongodb`.
+
 # Integration examples
 
 ## Integrating with jQuery Datatables

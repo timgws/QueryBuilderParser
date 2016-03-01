@@ -4,13 +4,15 @@
          bootstrap="vendor/autoload.php"
          backupGlobals="false"
          verbose="true">
+ <testsuites>
   <testsuite name="MySQL">
     <directory suffix="Test.php">tests</directory>
   </testsuite>
 
   <testsuite name="MongoDB">
-    <directory suffix="Test.php">tests/mongodb</directory>
+    <directory suffix="MongoDB.php">tests/mongodb</directory>
   </testsuite>
+ </testsuites>
 
   <filter>
     <whitelist processUncoveredFilesFromWhitelist="true">

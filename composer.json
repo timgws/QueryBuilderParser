@@ -2,7 +2,7 @@
     "name": "timgws/query-builder-parser",
     "homepage": "http://github.com/timgws/QueryBuilderParser",
     "description": "Build complex Eloquent & QueryBuilder queries automatically when using jQuery-QueryBuilder",
-    "keywords": [ "ajax", "eloquent", "jquery", "laravel", "parser", "query builder", "sql" ],
+    "keywords": [ "ajax", "eloquent", "jquery", "laravel", "parser", "query builder", "sql", "mongodb" ],
     "type": "library",
     "license": "MIT",
     "authors": [

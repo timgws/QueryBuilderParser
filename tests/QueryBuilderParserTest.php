@@ -222,8 +222,8 @@ class QueryBuilderParserTest extends CommonQueryBuilderTests
         $test = $qb->parse($json, $builder);
 
         $sqlBindings = $builder->getBindings();
-        $this->assertCount(1, $sqlBindings);
-        $this->assertEquals($sqlBindings[0], 'NULL');
+        $this->assertCount(0, $sqlBindings);
+        $this->assertEquals('select * where `price` is null', $builder->toSql());
     }
 
     public function testValueBecomesEmpty()

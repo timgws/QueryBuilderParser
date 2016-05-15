@@ -226,6 +226,23 @@ class QueryBuilderParserTest extends CommonQueryBuilderTests
         $this->assertEquals('select * where `price` is null', $builder->toSql());
     }
 
+    public function testBothValuesBecomesNull()
+    {
+        $v = '1.23';
+        $json = '{"condition":"OR","rules":['
+            .'{"id":"price","field":"price","type":"double","input":"text",'
+            .'"operator":"is_null","value":['.$v.']},{"id":"price","field":"price","type":"double","input":"text",'
+            .'"operator":"is_not_null","value":['.$v.']}]}';
+
+        $builder = $this->createQueryBuilder();
+        $qb = $this->getParserUnderTest();
+        $test = $qb->parse($json, $builder);
+
+        $sqlBindings = $builder->getBindings();
+        $this->assertCount(0, $sqlBindings);
+        $this->assertEquals('select * where `price` is null or `price` is not null', $builder->toSql());
+    }
+
     public function testValueBecomesEmpty()
     {
         $v = '1.23';

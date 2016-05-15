@@ -35,4 +35,21 @@ class QBPFunctionsTests extends CommonQueryBuilderTests
             $builder, $rule->rules[1], array('operator' => 'CONTAINS'), array('AND'), 'AND'
         ]);
     }
+
+    /**
+     * @expectedException \timgws\QBParseException
+     * @expectedExceptionMessage makeQueryWhenNull was called on an SQL operator that is not null
+     */
+    public function testOperatorNotValidForNull()
+    {
+        $method = self::getMethod('makeQueryWhenNull');
+
+        $builder = $this->createQueryBuilder();
+        $qb = $this->getParserUnderTest();
+        $rule = json_decode($this->makeJSONForInNotInTest('contains'));
+
+        $method->invokeArgs($qb, [
+            $builder, $rule->rules[1], array('operator' => 'CONTAINS'), array('AND'), 'AND'
+        ]);
+    }
 }

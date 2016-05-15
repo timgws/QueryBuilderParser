@@ -278,6 +278,8 @@ trait QBPFunctions
         } elseif ($sqlOperator['operator'] == 'NOT NULL') {
             return $query->whereNotNull($rule->field, $condition);
         }
+
+        throw new QBParseException('makeQueryWhenNull was called on an SQL operator that is not null');
     }
 
     /**

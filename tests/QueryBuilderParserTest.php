@@ -6,6 +6,13 @@ use Illuminate\Database\Query\Builder;
 
 class QueryBuilderParserTest extends CommonQueryBuilderTests
 {
+    public function testSimpleEmptyQuery()
+    {
+        $builder = $this->createQueryBuilder();
+        $qb = $this->getParserUnderTest();
+
+        $test = $qb->parse("{}", $builder);
+    }
     public function testSimpleQuery()
     {
         $builder = $this->createQueryBuilder();
@@ -444,6 +451,45 @@ class QueryBuilderParserTest extends CommonQueryBuilderTests
         $qb->parse($json, $builder);
         $this->assertEquals('select * where `email_pool` LIKE ? and (`geo_constituency` in (?) or `geo_constituency` in (?))',
             $builder->toSql());
+    }
+
+
+    /**
+     * Null check is not using isnull function instead checking = 'NULL'
+     *
+     * Tests for #10
+     * @throws \timgws\QBParseException
+     */
+    public function testIsNullBecomesNullInQuery()
+    {
+        $json = '{
+            "condition": "OR",
+                "rules": [
+                {
+                    "id": "t_o",
+                    "field": "t_o",
+                    "type": "integer",
+                    "input": "text",
+                    "operator": "equal",
+                    "value": "0"
+                },
+                {
+                    "id": "t_o",
+                    "field": "t_o",
+                    "type": "integer",
+                    "input": "text",
+                    "operator": "is_null",
+                    "value": null
+                }
+                ]
+        }';
+        $builder = $this->createQueryBuilder();
+        $qb = $this->getParserUnderTest();
+        $qb->parse($json, $builder);
+        $this->assertEquals('select * where `t_o` = ? or `t_o` is null',
+            $builder->toSql());
+        $bindings_are = ['0'];
+        $this->assertEquals($bindings_are, $builder->getBindings());
     }
 
     /**

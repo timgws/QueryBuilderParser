@@ -72,6 +72,18 @@ trait QBPFunctions
     }
 
     /**
+     * Determine if an operator is NULL/NOT NULL
+     *
+     * @param $operator
+     *
+     * @return bool
+     */
+    protected function operatorIsNull($operator)
+    {
+        return ($operator == 'NULL' || $operator == 'NOT NULL') ? true : false;
+    }
+
+    /**
      * Make sure that a condition is either 'or' or 'and'.
      *
      * @param $condition
@@ -246,6 +258,26 @@ trait QBPFunctions
         }
 
         throw new QBParseException('makeQueryWhenArray could not return a value');
+    }
+
+    /**
+     * Create a 'null' query when required.
+     *
+     * @param Builder  $query
+     * @param stdClass $rule
+     * @param array    $sqlOperator
+     * @param array    $value
+     * @param string   $condition
+     *
+     * @return Builder
+     */
+    protected function makeQueryWhenNull(Builder $query, stdClass $rule, array $sqlOperator, $value = null, $condition)
+    {
+        if ($sqlOperator['operator'] == 'NULL') {
+            return $query->whereNull($rule->field, $condition);
+        } elseif ($sqlOperator['operator'] == 'NOT NULL') {
+            return $query->whereNotNull($rule->field, $condition);
+        }
     }
 
     /**

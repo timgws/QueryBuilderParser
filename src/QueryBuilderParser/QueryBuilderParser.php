@@ -242,7 +242,7 @@ class QueryBuilderParser
         if ($this->operatorRequiresArray($operator)) {
             return $this->makeQueryWhenArray($query, $rule, $sqlOperator, $value, $condition);
         } elseif($this->operatorIsNull($operator)) {
-            return $this->makeQueryWhenNull($query, $rule, $sqlOperator, $value, $condition);
+            return $this->makeQueryWhenNull($query, $rule, $sqlOperator, $condition);
         }
 
         return $query->where($rule->field, $sqlOperator['operator'], $value, $condition);

@@ -271,7 +271,7 @@ trait QBPFunctions
      *
      * @return Builder
      */
-    protected function makeQueryWhenNull(Builder $query, stdClass $rule, array $sqlOperator, $value = null, $condition)
+    protected function makeQueryWhenNull(Builder $query, stdClass $rule, array $sqlOperator, $condition)
     {
         if ($sqlOperator['operator'] == 'NULL') {
             return $query->whereNull($rule->field, $condition);

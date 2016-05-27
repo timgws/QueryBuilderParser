@@ -68,7 +68,7 @@ This query when posted will create the following MongoDB query:
           }
         },
         {
-          "name": {
+          "email": {
             "$regex": "@gmail\\.com$"
           }
         }

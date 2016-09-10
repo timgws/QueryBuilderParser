@@ -9,7 +9,7 @@ namespace timgws\test\Mocks;
  *
  * @package timgws\test\Mocks
  */
-class Connection extends \Jenssegers\Mongodb\Connection implements \Jenssegers\Mongodb\Contracts\ConnectionContract
+class Connection extends \Jenssegers\Mongodb\Connection
 {
 
     private $mockedCollection;

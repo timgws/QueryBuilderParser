@@ -1,10 +1,13 @@
 language: php
+
 php:
-- 5.5
-- 5.6
-- hhvm
+  - 5.6
+  - 7
+
 before_script:
-- composer self-update
-- composer install --prefer-source --no-interaction --dev
+  - pecl install mongodb
+  - composer self-update
+  - composer install --prefer-source --no-interaction --dev
+
 script:
-- vendor/bin/phpunit --testsuite MySQL
+  - vendor/bin/phpunit

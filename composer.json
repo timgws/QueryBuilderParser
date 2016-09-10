@@ -19,15 +19,16 @@
         }
 
     },
-    "minimum-stability": "dev",
     "require": {
-        "illuminate/database": "4.1 - 5.2"
+        "illuminate/database": "4.1 - 5.3"
     },
     "suggest": {
         "jenssegers/mongodb": "Use QueryBuilderParser with MongoDB"
     },
     "require-dev": {
-        "phpunit/phpunit": "4.7.*@dev",
-        "mockery/mockery": "^0.9.4"
+        "mockery/mockery": "^0.9.4",
+        "jenssegers/mongodb": "^3.0",
+        "phpunit/phpunit": "^5.5",
+        "laravel/framework": "^5.3"
     }
 }

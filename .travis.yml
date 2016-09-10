@@ -5,10 +5,8 @@ php:
   - 7
   - hhvm
 
-services:
-  - mongodb
-
 before_script:
+  - pecl install mongodb
   - composer self-update
   - composer install --prefer-source --no-interaction --dev
 

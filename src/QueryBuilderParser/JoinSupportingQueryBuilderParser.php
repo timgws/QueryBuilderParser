@@ -64,7 +64,7 @@ class JoinSupportingQueryBuilderParser extends QueryBuilderParser
         $condition = strtolower($queryCondition);
 
         if (is_array($this->joinFields) && array_key_exists($rule->field, $this->joinFields)) {
-            return $this->buildSubclauseQuery($query, $rule, $value);
+            return $this->buildSubclauseQuery($query, $rule, $value, $condition);
         }
 
         return $this->convertIncomingQBtoQuery($query, $rule, $value, $condition);
@@ -78,7 +78,7 @@ class JoinSupportingQueryBuilderParser extends QueryBuilderParser
      * @param string|null $value
      * @return Builder the query builder object
      */
-    private function buildSubclauseQuery($query, $rule, $value)
+    private function buildSubclauseQuery($query, $rule, $value, $condition)
     {
         /*
          * Convert the Operator (LIKE/NOT LIKE/GREATER THAN) given to us by QueryBuilder
@@ -114,7 +114,7 @@ class JoinSupportingQueryBuilderParser extends QueryBuilderParser
 
                 $this->buildSubclauseInnerQuery($subclause, $q);
             },
-            'and',
+            $condition,
             $not
         );
 

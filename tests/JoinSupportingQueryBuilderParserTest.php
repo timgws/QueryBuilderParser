@@ -197,6 +197,23 @@ class JoinSupportingQueryBuilderParserTest extends CommonQueryBuilderTests
           $builder->toSql());
     }
 
+    /**
+     * JoinSupportingQueryBuilderParser always return AND even if OR is the condition
+     * (Fix for bug #13)
+     */
+    public function testJoinWorksWithOrCondition()
+    {
+        $json = '{"condition":"OR","rules":[{"id":"joinwithclause","field":"joinwithclause","type":"double","input":"text","operator":"less","value":"10.25"},{"condition":"OR","rules":[{"id":"joinwithclause","field":"joinwithclause","type":"integer","input":"select","operator":"equal","value":"2"},{"id":"joinwithclause","field":"joinwithclause","type":"integer","input":"select","operator":"equal","value":"1"}]}]}';
+
+        $builder = $this->createQueryBuilder();
+
+        $parser = $this->getParserUnderTest();
+        $parser->parse($json, $builder);
+
+        $this->assertEquals('select * where exists (select 1 from `subtable` where subtable.s_col = master.m_col and (`othercol` = ?) and `s_value` < ?) or (exists (select 1 from `subtable` where subtable.s_col = master.m_col and (`othercol` = ?) and `s_value` = ?) or exists (select 1 from `subtable` where subtable.s_col = master.m_col and (`othercol` = ?) and `s_value` = ?))',
+            $builder->toSql());
+    }
+
     public function testCategoryIn()
     {
         $builder = $this->createQueryBuilder();

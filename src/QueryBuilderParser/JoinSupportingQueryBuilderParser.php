@@ -135,12 +135,8 @@ class JoinSupportingQueryBuilderParser extends QueryBuilderParser
             return $this->buildRequireArrayQuery($subclause, $query);
         }
 
-        if ($subclause['operator'] == 'NULL') {
-            return $this->buildSubclauseWithNull($subclause, $query);
-        }
-
-        if ($subclause['operator'] == 'NOT NULL') {
-            return $this->buildSubclauseWithNotNull($subclause, $query);
+        if ($subclause['operator'] == 'NULL' || $subclause['operator'] == 'NOT NULL') {
+            return $this->buildSubclauseWithNull($subclause, $query, ($subclause['operator'] == 'NOT NULL' ? true : false));
         }
 
         return $this->buildRequireNotArrayQuery($subclause, $query);
@@ -194,22 +190,13 @@ class JoinSupportingQueryBuilderParser extends QueryBuilderParser
      * @param Builder $query
      * @return Builder the query builder object
      */
-    private function buildSubclauseWithNull($subclause, Builder $query)
+    private function buildSubclauseWithNull($subclause, Builder $query, $isNotNull = false)
     {
-        return $query->whereNull($subclause['to_value_column']);
-    }
+    	if ($isNotNull === true) {
+    		return $query->whereNotNull($subclause['to_value_column']);
+    	}
 
-    /**
-     * The inner query for a subclause when the operator is NULL.
-     *
-     * @see buildSubclauseInnerQuery
-     * @param array $subclause
-     * @param Builder $query
-     * @return Builder the query builder object
-     */
-    private function buildSubclauseWithNotNull($subclause, Builder $query)
-    {
-        return $query->whereNotNull($subclause['to_value_column']);
+        return $query->whereNull($subclause['to_value_column']);
     }
 
 }

@@ -146,6 +146,34 @@ class JoinSupportingQueryBuilderParserTest extends CommonQueryBuilderTests
             $builder->toSql());
     }
 
+    // Bugfix for #14
+    public function testJoinIsNull()
+    {
+        $json = '{"condition":"AND","rules":[{"id":"join2","field":"join2","type":"text","input":"select","operator":"is_null","value":""}]}';
+
+        $builder = $this->createQueryBuilder();
+
+        $parser = $this->getParserUnderTest();
+        $parser->parse($json, $builder);
+
+        $this->assertEquals('select * where not exists (select 1 from `subtable2` where subtable2.s2_col = master2.m2_col and `s2_value` is null)',
+          $builder->toSql());
+    }
+
+    // Bugfix for #14
+    public function testJoinIsNotNull()
+    {
+        $json = '{"condition":"AND","rules":[{"id":"join2","field":"join2","type":"text","input":"select","operator":"is_not_null","value":""}]}';
+
+        $builder = $this->createQueryBuilder();
+
+        $parser = $this->getParserUnderTest();
+        $parser->parse($json, $builder);
+
+        $this->assertEquals('select * where not exists (select 1 from `subtable2` where subtable2.s2_col = master2.m2_col and `s2_value` is not null)',
+          $builder->toSql());
+    }
+
     /**
      * @expectedException timgws\QBParseException
      * @expectedExceptionMessage s2_value should be an array with only two items.

@@ -5,6 +5,9 @@ php:
 - hhvm
 before_script:
 - composer self-update
+- composer require satooshi/php-coveralls:dev-master
 - composer install --prefer-source --no-interaction --dev
 script:
-- vendor/bin/phpunit --testsuite MySQL
+- vendor/bin/phpunit --testsuite MySQL --coverage-clover ./tests/logs/clover.xml
+after_script:
+- php vendor/bin/coveralls -v

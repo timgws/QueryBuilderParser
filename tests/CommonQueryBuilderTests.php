@@ -10,7 +10,7 @@ use timgws\QueryBuilderParser;
 
 class CommonQueryBuilderTests extends \PHPUnit_Framework_TestCase
 {
-    protected $simpleQuery = '{"condition":"AND","rules":[{"id":"price","field":"price","type":"double","input":"text","operator":"less","value":"10.25"}]}';
+    protected $simpleQuery = '{"condition":"AND","rules":[{"id":"price","field":"price","type":"double","operator":"less","value":"10.25"}]}';
     protected $json1 = '{
        "condition":"AND",
        "rules":[
@@ -18,7 +18,6 @@ class CommonQueryBuilderTests extends \PHPUnit_Framework_TestCase
              "id":"price",
              "field":"price",
              "type":"double",
-             "input":"text",
              "operator":"less",
              "value":"10.25"
           },
@@ -29,7 +28,6 @@ class CommonQueryBuilderTests extends \PHPUnit_Framework_TestCase
                    "id":"name",
                    "field":"name",
                    "type":"string",
-                   "input":"text",
                    "operator":"begins_with",
                    "value":"Thommas"
                 },
@@ -37,7 +35,6 @@ class CommonQueryBuilderTests extends \PHPUnit_Framework_TestCase
                    "id":"name",
                    "field":"name",
                    "type":"string",
-                   "input":"text",
                    "operator":"equal",
                    "value":"John Doe"
                 }
@@ -72,7 +69,6 @@ class CommonQueryBuilderTests extends \PHPUnit_Framework_TestCase
                  "id":"price",
                  "field":"price",
                  "type":"double",
-                 "input":"text",
                  "operator":"less",
                  "value":"10.25"
               },
@@ -82,7 +78,6 @@ class CommonQueryBuilderTests extends \PHPUnit_Framework_TestCase
                    "id":"category",
                    "field":"category",
                    "type":"integer",
-                   "input":"select",
                    "operator":"'.$operator.'",
                    "value":[
                       "1", "2"

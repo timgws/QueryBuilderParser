@@ -136,7 +136,7 @@ class QueryBuilderParser
      */
     protected function checkRuleCorrect(stdClass $rule)
     {
-        if (!isset($rule->operator, $rule->id, $rule->field, $rule->input, $rule->type)) {
+        if (!isset($rule->operator, $rule->id, $rule->field, $rule->type)) {
             return false;
         }
 

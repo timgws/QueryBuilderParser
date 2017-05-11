@@ -195,7 +195,7 @@ trait QBPFunctions
             throw new QBParseException('JSON parsing threw an error: '.json_last_error_msg());
         }
 
-        if (!is_object($query)) {
+        if ($query && !is_object($query)) {
             throw new QBParseException('The query is not valid JSON');
         }
 

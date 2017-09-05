@@ -21,7 +21,7 @@
     },
     "minimum-stability": "dev",
     "require": {
-        "illuminate/database": "4.1 - 5.4"
+        "illuminate/database": "4.1 - 5.5"
     },
     "suggest": {
         "jenssegers/mongodb": "Use QueryBuilderParser with MongoDB"

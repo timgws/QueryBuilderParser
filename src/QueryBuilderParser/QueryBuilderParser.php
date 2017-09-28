@@ -2,6 +2,7 @@
 
 namespace timgws;
 
+use \Carbon\Carbon;
 use \stdClass;
 use \Illuminate\Database\Query\Builder;
 use \timgws\QBParseException;
@@ -288,6 +289,19 @@ class QueryBuilderParser
          * \o/ Ensure that the value is an array only if it should be.
          */
         $value = $this->getCorrectValue($operator, $rule, $value);
+
+	    /*
+		 *  Turn datetime into Carbon object so that it works with "between" operators etc.
+		 */
+		if ( $rule->type == 'datetime' ) {
+			if ( is_array( $value ) ) {
+				$value = array_map( function ( $v ) {
+					return new Carbon( $v );
+				}, $value );
+			} else {
+				$value = new Carbon( $value );
+			}
+		}
 
         return $value;
     }

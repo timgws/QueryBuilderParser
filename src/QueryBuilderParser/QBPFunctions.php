@@ -21,6 +21,7 @@ trait QBPFunctions
         'greater'          => array ('accept_values' => true,  'apply_to' => ['number', 'datetime']),
         'greater_or_equal' => array ('accept_values' => true,  'apply_to' => ['number', 'datetime']),
         'between'          => array ('accept_values' => true,  'apply_to' => ['number', 'datetime']),
+        'not_between'      => array( 'accept_values' => true, 'apply_to' => [ 'number', 'datetime' ] ),
         'begins_with'      => array ('accept_values' => true,  'apply_to' => ['string']),
         'not_begins_with'  => array ('accept_values' => true,  'apply_to' => ['string']),
         'contains'         => array ('accept_values' => true,  'apply_to' => ['string']),
@@ -43,6 +44,7 @@ trait QBPFunctions
         'greater'          => array ('operator' => '>'),
         'greater_or_equal' => array ('operator' => '>='),
         'between'          => array ('operator' => 'BETWEEN'),
+		'not_between'      => array( 'operator' => 'NOT BETWEEN' ),
         'begins_with'      => array ('operator' => 'LIKE',     'prepend'  => '%'),
         'not_begins_with'  => array ('operator' => 'NOT LIKE', 'prepend'  => '%'),
         'contains'         => array ('operator' => 'LIKE',     'append'  => '%', 'prepend' => '%'),
@@ -56,7 +58,7 @@ trait QBPFunctions
     );
 
     protected $needs_array = array(
-        'IN', 'NOT IN', 'BETWEEN',
+        'IN', 'NOT IN', 'BETWEEN', 'NOT BETWEEN',
     );
 
     /**
@@ -253,8 +255,8 @@ trait QBPFunctions
     {
         if ($sqlOperator['operator'] == 'IN' || $sqlOperator['operator'] == 'NOT IN') {
             return $this->makeArrayQueryIn($query, $rule, $sqlOperator['operator'], $value, $condition);
-        } elseif ($sqlOperator['operator'] == 'BETWEEN') {
-            return $this->makeArrayQueryBetween($query, $rule, $value, $condition);
+        } elseif ($sqlOperator['operator'] == 'BETWEEN' || $sqlOperator['operator'] == 'NOT BETWEEN') {
+            return $this->makeArrayQueryBetween($query, $rule, $sqlOperator['operator'], $value, $condition);
         }
 
         throw new QBParseException('makeQueryWhenArray could not return a value');
@@ -309,16 +311,21 @@ trait QBPFunctions
      * @see makeQueryWhenArray
      * @param Builder $query
      * @param stdClass $rule
+	 * @pram operator
      * @param array $value
      * @param string $condition
      * @throws QBParseException when more then two items given for the between
      * @return Builder
      */
-    private function makeArrayQueryBetween(Builder $query, stdClass $rule, array $value, $condition)
+    private function makeArrayQueryBetween(Builder $query, stdClass $rule, $operator, array $value, $condition)
     {
         if (count($value) !== 2) {
             throw new QBParseException("{$rule->field} should be an array with only two items.");
         }
+
+		if ( $operator == 'NOT BETWEEN' ) {
+			return $query->whereNotBetween( $rule->field, $value, $condition );
+		}
 
         return $query->whereBetween($rule->field, $value, $condition);
     }

@@ -54,9 +54,9 @@ class QueryBuilderParser
     /**
      * Called by parse, loops through all the rules to find out if nested or not.
      *
-     * @param array   $rules
+     * @param array $rules
      * @param Builder $querybuilder
-     * @param string  $queryCondition
+     * @param string $queryCondition
      *
      * @throws QBParseException
      *
@@ -112,7 +112,7 @@ class QueryBuilderParser
 
         $condition = $this->validateCondition($condition);
 
-        return $querybuilder->whereNested(function($query) use (&$rule, &$querybuilder, &$condition) {
+        return $querybuilder->whereNested(function ($query) use (&$rule, &$querybuilder, &$condition) {
             foreach ($rule->rules as $loopRule) {
                 $function = 'makeQuery';
 
@@ -196,9 +196,9 @@ class QueryBuilderParser
      * Make sure that all the correct fields are in the rule object then add the expression to
      * the query that was given by the user to the QueryBuilder.
      *
-     * @param Builder  $query
+     * @param Builder $query
      * @param stdClass $rule
-     * @param string   $queryCondition and/or...
+     * @param string $queryCondition and/or...
      *
      * @throws QBParseException
      *
@@ -224,10 +224,10 @@ class QueryBuilderParser
      * (This used to be part of makeQuery, where the name made sense, but I pulled it
      * out to reduce some duplicated code inside JoinSupportingQueryBuilder)
      *
-     * @param Builder  $query
+     * @param Builder $query
      * @param stdClass $rule
-     * @param mixed    $value the value that needs to be queried in the database.
-     * @param string   $queryCondition and/or...
+     * @param mixed $value the value that needs to be queried in the database.
+     * @param string $queryCondition and/or...
      * @return Builder
      */
     protected function convertIncomingQBtoQuery(Builder $query, stdClass $rule, $value, $queryCondition = 'AND')
@@ -242,7 +242,7 @@ class QueryBuilderParser
 
         if ($this->operatorRequiresArray($operator)) {
             return $this->makeQueryWhenArray($query, $rule, $sqlOperator, $value, $condition);
-        } elseif($this->operatorIsNull($operator)) {
+        } elseif ($this->operatorIsNull($operator)) {
             return $this->makeQueryWhenNull($query, $rule, $sqlOperator, $condition);
         }
 
@@ -290,18 +290,18 @@ class QueryBuilderParser
          */
         $value = $this->getCorrectValue($operator, $rule, $value);
 
-	    /*
-		 *  Turn datetime into Carbon object so that it works with "between" operators etc.
-		 */
-		if ( $rule->type == 'datetime' ) {
-			if ( is_array( $value ) ) {
-				$value = array_map( function ( $v ) {
-					return new Carbon( $v );
-				}, $value );
-			} else {
-				$value = new Carbon( $value );
-			}
-		}
+        /*
+         *  Turn datetime into Carbon object so that it works with "between" operators etc.
+         */
+        if ($rule->type == 'datetime') {
+            if (is_array($value)) {
+                $value = array_map(function ($v) {
+                    return new Carbon($v);
+                }, $value);
+            } else {
+                $value = new Carbon($value);
+            }
+        }
 
         return $value;
     }

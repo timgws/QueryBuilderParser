@@ -185,6 +185,13 @@ class QueryBuilderParser
 
         $value = $this->enforceArrayOrString($requireArray, $value, $field);
 
+        /*
+        *  Turn datetime into Carbon object so that it works with "between" operators etc.
+        */
+        if ($rule->type == 'datetime') {
+            $value = $this->convertDatetimeToCarbon($value);
+        }
+
         return $this->appendOperatorIfRequired($requireArray, $value, $sqlOperator);
     }
 
@@ -290,18 +297,6 @@ class QueryBuilderParser
          */
         $value = $this->getCorrectValue($operator, $rule, $value);
 
-        /*
-         *  Turn datetime into Carbon object so that it works with "between" operators etc.
-         */
-        if ($rule->type == 'datetime') {
-            if (is_array($value)) {
-                $value = array_map(function ($v) {
-                    return new Carbon($v);
-                }, $value);
-            } else {
-                $value = new Carbon($value);
-            }
-        }
 
         return $value;
     }

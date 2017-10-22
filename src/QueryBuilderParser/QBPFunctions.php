@@ -3,6 +3,7 @@ namespace timgws;
 
 use \Illuminate\Database\Query\Builder;
 use \stdClass;
+use \Carbon\Carbon;
 
 trait QBPFunctions
 {
@@ -21,7 +22,7 @@ trait QBPFunctions
         'greater'          => array ('accept_values' => true,  'apply_to' => ['number', 'datetime']),
         'greater_or_equal' => array ('accept_values' => true,  'apply_to' => ['number', 'datetime']),
         'between'          => array ('accept_values' => true,  'apply_to' => ['number', 'datetime']),
-        'not_between'      => array( 'accept_values' => true, 'apply_to' => [ 'number', 'datetime' ] ),
+        'not_between'      => array ('accept_values' => true,  'apply_to' => ['number', 'datetime']),
         'begins_with'      => array ('accept_values' => true,  'apply_to' => ['string']),
         'not_begins_with'  => array ('accept_values' => true,  'apply_to' => ['string']),
         'contains'         => array ('accept_values' => true,  'apply_to' => ['string']),
@@ -157,6 +158,27 @@ trait QBPFunctions
         }
 
         return $value[0];
+    }
+
+    /**
+     * Convert a Datetime field to Carbon to be used for between.
+     *
+     * In some instances, and array may be given when we want a string.
+     *
+     * @param $value
+     * @return carbon $value
+     * @throws QBParseException
+     */
+    protected function convertDatetimeToCarbon($value)
+    {
+        if (is_array($value)) {
+            $value = array_map(function ($v) {
+                return new Carbon($v);
+            }, $value);
+        } else {
+            $value = new Carbon($value);
+        }
+        return $value;
     }
 
     /**

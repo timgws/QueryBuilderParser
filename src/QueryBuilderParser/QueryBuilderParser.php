@@ -188,7 +188,7 @@ class QueryBuilderParser
         /*
         *  Turn datetime into Carbon object so that it works with "between" operators etc.
         */
-        if ($rule->type == 'datetime') {
+        if ($rule->type == 'date') {
             $value = $this->convertDatetimeToCarbon($value);
         }
 
@@ -296,7 +296,6 @@ class QueryBuilderParser
          * \o/ Ensure that the value is an array only if it should be.
          */
         $value = $this->getCorrectValue($operator, $rule, $value);
-
 
         return $value;
     }

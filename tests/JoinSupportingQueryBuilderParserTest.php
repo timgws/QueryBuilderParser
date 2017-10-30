@@ -251,4 +251,32 @@ class JoinSupportingQueryBuilderParserTest extends CommonQueryBuilderTests
 
         $this->assertEquals('select * where `price` < ? and (`category` in (?, ?))', $builder->toSql());
     }
+
+    /**
+     * Test for #21 (Cast datetimes and add 'not between' operator)
+     */
+    public function testDateBetween()
+    {
+        $incoming = '{ "condition": "AND", "rules": [ { "id": "dollar_amount", "field": "dollar_amount", "type": "double", "input": "number", "operator": "less", "value": "546" }, { "id": "needed_by_date", "field": "needed_by_date", "type": "date", "input": "text", "operator": "between", "value": [ "10/22/2017", "10/28/2017" ] } ], "not": false, "valid": true }';
+        $builder = $this->createQueryBuilder();
+        $qb = $this->getParserUnderTest();
+
+        $qb->parse($incoming, $builder);
+
+        $this->assertEquals('select * where `dollar_amount` < ? and `needed_by_date` between ? and ?', $builder->toSql());
+    }
+
+    /**
+     * Test for #21 (Cast datetimes and add 'not between' operator)
+     */
+    public function testDateNotBetween()
+    {
+        $incoming = '{ "condition": "AND", "rules": [ { "id": "dollar_amount", "field": "dollar_amount", "type": "double", "input": "number", "operator": "less", "value": "546" }, { "id": "needed_by_date", "field": "needed_by_date", "type": "date", "input": "text", "operator": "not_between", "value": [ "10/22/2017", "10/28/2017" ] } ], "not": false, "valid": true }';
+        $builder = $this->createQueryBuilder();
+        $qb = $this->getParserUnderTest();
+
+        $qb->parse($incoming, $builder);
+
+        $this->assertEquals('select * where `dollar_amount` < ? and `needed_by_date` not between ? and ?', $builder->toSql());
+    }
 }

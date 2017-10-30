@@ -45,7 +45,7 @@ trait QBPFunctions
         'greater'          => array ('operator' => '>'),
         'greater_or_equal' => array ('operator' => '>='),
         'between'          => array ('operator' => 'BETWEEN'),
-		'not_between'      => array( 'operator' => 'NOT BETWEEN' ),
+        'not_between'      => array ('operator' => 'NOT BETWEEN'),
         'begins_with'      => array ('operator' => 'LIKE',     'prepend'  => '%'),
         'not_begins_with'  => array ('operator' => 'NOT LIKE', 'prepend'  => '%'),
         'contains'         => array ('operator' => 'LIKE',     'append'  => '%', 'prepend' => '%'),
@@ -161,24 +161,21 @@ trait QBPFunctions
     }
 
     /**
-     * Convert a Datetime field to Carbon to be used for between.
-     *
-     * In some instances, and array may be given when we want a string.
+     * Convert a Datetime field to Carbon items to be used for comparisons.
      *
      * @param $value
-     * @return carbon $value
+     * @return \Carbon\Carbon
      * @throws QBParseException
      */
     protected function convertDatetimeToCarbon($value)
     {
         if (is_array($value)) {
-            $value = array_map(function ($v) {
+            return array_map(function ($v) {
                 return new Carbon($v);
             }, $value);
-        } else {
-            $value = new Carbon($value);
         }
-        return $value;
+
+        return new Carbon($value);
     }
 
     /**
@@ -290,9 +287,9 @@ trait QBPFunctions
      * @param Builder  $query
      * @param stdClass $rule
      * @param array    $sqlOperator
-     * @param array    $value
      * @param string   $condition
      *
+     * @throws QBParseException when SQL operator is !null
      * @return Builder
      */
     protected function makeQueryWhenNull(Builder $query, stdClass $rule, array $sqlOperator, $condition)

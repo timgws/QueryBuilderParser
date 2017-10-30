@@ -1,6 +1,7 @@
 <?php
 namespace timgws\test;
 
+use Carbon\Carbon;
 use timgws\QBParseException;
 
 /**
@@ -51,5 +52,32 @@ class QBPFunctionsTests extends CommonQueryBuilderTests
         $method->invokeArgs($qb, [
             $builder, $rule->rules[1], array('operator' => 'CONTAINS'), array('AND'), 'AND'
         ]);
+    }
+
+    public function testDate()
+    {
+        $method = self::getMethod('convertDatetimeToCarbon');
+
+        $qb = $this->getParserUnderTest();
+
+        /** @var Carbon $carbonDate */
+        $carbonDate = $method->invokeArgs($qb, ['2010-12-11']);
+
+        $this->assertEquals('2010', $carbonDate->year);
+        $this->assertEquals('12', $carbonDate->month);
+    }
+
+    public function testDateArray()
+    {
+        $method = self::getMethod('convertDatetimeToCarbon');
+
+        $qb = $this->getParserUnderTest();
+
+        /** @var Carbon[] $carbonDate */
+        $carbonDates = $method->invokeArgs($qb, [['2010-12-11', '2001-01-02']]);
+
+        $this->assertCount(2, $carbonDates);
+        $this->assertEquals('2010', $carbonDates[0]->year);
+        $this->assertEquals('2001', $carbonDates[1]->year);
     }
 }

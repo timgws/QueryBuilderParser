@@ -264,6 +264,12 @@ class JoinSupportingQueryBuilderParserTest extends CommonQueryBuilderTests
         $qb->parse($incoming, $builder);
 
         $this->assertEquals('select * where `dollar_amount` < ? and `needed_by_date` between ? and ?', $builder->toSql());
+
+        $bindings = $builder->getBindings();
+        $this->assertCount(3, $bindings);
+        $this->assertEquals('546', $bindings[0]);
+        $this->assertInstanceOf("Carbon\\Carbon", $bindings[1]);
+        $this->assertInstanceOf("Carbon\\Carbon", $bindings[2]);
     }
 
     /**
@@ -281,5 +287,10 @@ class JoinSupportingQueryBuilderParserTest extends CommonQueryBuilderTests
 
         $bindings = $builder->getBindings();
         $this->assertCount(2, $bindings);
+        $this->assertInstanceOf("Carbon\\Carbon", $bindings[0]);
+        $this->assertInstanceOf("Carbon\\Carbon", $bindings[1]);
+        $this->assertEquals(2017, $bindings[0]->year);
+        $this->assertEquals(22, $bindings[0]->day);
+        $this->assertEquals(28, $bindings[1]->day);
     }
 }

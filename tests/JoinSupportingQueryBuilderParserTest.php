@@ -133,6 +133,19 @@ class JoinSupportingQueryBuilderParserTest extends CommonQueryBuilderTests
           $builder->toSql());
     }
 
+    public function testJoinNotBetween()
+    {
+        $json = '{"condition":"AND","rules":[{"id":"join1","field":"join1","type":"text","input":"select","operator":"not_between","value":["a","b"]}]}';
+
+        $builder = $this->createQueryBuilder();
+
+        $parser = $this->getParserUnderTest();
+        $test = $parser->parse($json, $builder);
+
+        $this->assertEquals('select * where exists (select 1 from `subtable` where subtable.s_col = master.m_col and `s_value` not between ? and ?)',
+          $builder->toSql());
+    }
+
     public function testJoinNotExistsBetween()
     {
         $json = '{"condition":"AND","rules":[{"id":"join2","field":"join2","type":"text","input":"select","operator":"between","value":["a","b"]}]}';
@@ -182,14 +195,36 @@ class JoinSupportingQueryBuilderParserTest extends CommonQueryBuilderTests
      */
     public function testJoinNotExistsBetweenWithThreeItems()
     {
-        $json = '{"condition":"AND","rules":[{"id":"join2","field":"join2","type":"text","input":"select","operator":"between","value":["a","b","c"]}]}';
+        $this->_testJoinNotExistsBetweenWithThreeItems(false);
+    }
+
+    /**
+     * @expectedException timgws\QBParseException
+     * @expectedExceptionMessage s2_value should be an array with only two items.
+     *
+     * @throws \timgws\QBParseException
+     */
+    public function testJoinNotExistsNotBetweenWithThreeItems()
+    {
+        $this->_testJoinNotExistsBetweenWithThreeItems(true);
+    }
+
+    /**
+      * @see testJoinNotExistsBetweenWithThreeItems()
+      * @see testJoinNotExistsNotBetweenWithThreeItems()
+      */
+    private function _testJoinNotExistsBetweenWithThreeItems($not_between = false)
+    {
+        $json_operator = ($not_between ? 'not_' : '') . 'between';
+        $sql_operator = ($not_between ? 'not ' : '') . 'between';
+        $json = '{"condition":"AND","rules":[{"id":"join2","field":"join2","type":"text","input":"select","operator":"'. $json_operator . '","value":["a","b","c"]}]}';
 
         $builder = $this->createQueryBuilder();
 
         $parser = $this->getParserUnderTest();
         $parser->parse($json, $builder);
 
-        $this->assertEquals('select * where not exists (select 1 from `subtable2` where subtable2.s2_col = master2.m2_col and `s2_value` between ? and ?)',
+        $this->assertEquals('select * where not exists (select 1 from `subtable2` where subtable2.s2_col = master2.m2_col and `s2_value` ' . $sql_operator . ' ? and ?)',
             $builder->toSql());
     }
 

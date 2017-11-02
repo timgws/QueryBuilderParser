@@ -325,12 +325,12 @@ trait QBPFunctions
 
 
     /**
-     * makeArrayQueryBetween, when the query is an IN or NOT IN...
+     * makeArrayQueryBetween, when the query is a BETWEEN or NOT BETWEEN...
      *
      * @see makeQueryWhenArray
      * @param Builder $query
      * @param stdClass $rule
-	 * @pram operator
+     * @param string operator the SQL operator used. [BETWEEN|NOT BETWEEN]
      * @param array $value
      * @param string $condition
      * @throws QBParseException when more then two items given for the between
@@ -342,9 +342,9 @@ trait QBPFunctions
             throw new QBParseException("{$rule->field} should be an array with only two items.");
         }
 
-		if ( $operator == 'NOT BETWEEN' ) {
-			return $query->whereNotBetween( $rule->field, $value, $condition );
-		}
+        if ( $operator == 'NOT BETWEEN' ) {
+            return $query->whereNotBetween( $rule->field, $value, $condition );
+        }
 
         return $query->whereBetween($rule->field, $value, $condition);
     }

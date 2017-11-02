@@ -199,9 +199,9 @@ class JoinSupportingQueryBuilderParser extends QueryBuilderParser
      */
     private function buildSubclauseWithNull($subclause, Builder $query, $isNotNull = false)
     {
-    	if ($isNotNull === true) {
-    		return $query->whereNotNull($subclause['to_value_column']);
-    	}
+        if ($isNotNull === true) {
+            return $query->whereNotNull($subclause['to_value_column']);
+        }
 
         return $query->whereNull($subclause['to_value_column']);
     }

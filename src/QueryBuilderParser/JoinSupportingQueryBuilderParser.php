@@ -164,6 +164,13 @@ class JoinSupportingQueryBuilderParser extends QueryBuilderParser
             }
 
             $query->whereBetween($subclause['to_value_column'], $subclause['value']);
+        } elseif ($subclause['operator'] == 'NOT BETWEEN') {
+            if (count($subclause['value']) !== 2) {
+                throw new QBParseException($subclause['to_value_column'].
+                    ' should be an array with only two items.');
+            }
+
+            $query->whereNotBetween($subclause['to_value_column'], $subclause['value']);
         }
 
         return $query;
@@ -192,9 +199,9 @@ class JoinSupportingQueryBuilderParser extends QueryBuilderParser
      */
     private function buildSubclauseWithNull($subclause, Builder $query, $isNotNull = false)
     {
-    	if ($isNotNull === true) {
-    		return $query->whereNotNull($subclause['to_value_column']);
-    	}
+        if ($isNotNull === true) {
+            return $query->whereNotNull($subclause['to_value_column']);
+        }
 
         return $query->whereNull($subclause['to_value_column']);
     }

@@ -52,6 +52,9 @@ class CommonQueryBuilderTests extends \PHPUnit_Framework_TestCase
         return new QueryBuilderParser($fields);
     }
 
+    /**
+     * @return Builder
+     */
     protected function createQueryBuilder()
     {
         $pdo = new \PDO('sqlite::memory:');

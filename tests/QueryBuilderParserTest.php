@@ -169,13 +169,14 @@ class QueryBuilderParserTest extends CommonQueryBuilderTests
         $qb->parse('{}]JSON', $builder);
     }
 
-    private function getBetweenJSON($hasTwoValues = true)
+    private function getBetweenJSON($hasTwoValues = true, $isnot = false)
     {
         $v = '"2","3"'.((!$hasTwoValues ? ',"3"' : ''));
+        $o = ( $isnot ? "not_" : "" ) . 'between';
 
         $json = '{"condition":"AND","rules":['
             .'{"id":"price","field":"price","type":"double","input":"text",'
-            .'"operator":"between","value":['.$v.']}]}';
+            .'"operator":"' . $o . '","value":['.$v.']}]}';
 
         return $json;
     }
@@ -187,6 +188,15 @@ class QueryBuilderParserTest extends CommonQueryBuilderTests
 
         $qb->parse($this->getBetweenJSON(), $builder);
         $this->assertEquals('select * where `price` between ? and ?', $builder->toSql());
+    }
+
+    public function testNotBetweenOperator()
+    {
+        $builder = $this->createQueryBuilder();
+        $qb = $this->getParserUnderTest();
+
+        $qb->parse($this->getBetweenJSON(true, true), $builder);
+        $this->assertEquals('select * where `price` not between ? and ?', $builder->toSql());
     }
 
     private function noRulesOrEmptyRules($hasRules = false)
@@ -398,6 +408,18 @@ class QueryBuilderParserTest extends CommonQueryBuilderTests
         $qb = $this->getParserUnderTest();
 
         $qb->parse($this->getBetweenJSON(false), $builder);
+    }
+
+    /**
+     * @see testBetweenOperatorThrowsException
+     * @expectedException \timgws\QBParseException
+     */
+    public function testNotBetweenOperatorThrowsException()
+    {
+        $builder = $this->createQueryBuilder();
+        $qb = $this->getParserUnderTest();
+
+        $qb->parse($this->getBetweenJSON(false, true), $builder);
     }
 
     /**

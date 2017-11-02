@@ -133,6 +133,19 @@ class JoinSupportingQueryBuilderParserTest extends CommonQueryBuilderTests
           $builder->toSql());
     }
 
+    public function testJoinNotBetween()
+    {
+        $json = '{"condition":"AND","rules":[{"id":"join1","field":"join1","type":"text","input":"select","operator":"not_between","value":["a","b"]}]}';
+
+        $builder = $this->createQueryBuilder();
+
+        $parser = $this->getParserUnderTest();
+        $test = $parser->parse($json, $builder);
+
+        $this->assertEquals('select * where exists (select 1 from `subtable` where subtable.s_col = master.m_col and `s_value` not between ? and ?)',
+          $builder->toSql());
+    }
+
     public function testJoinNotExistsBetween()
     {
         $json = '{"condition":"AND","rules":[{"id":"join2","field":"join2","type":"text","input":"select","operator":"between","value":["a","b"]}]}';
@@ -182,14 +195,36 @@ class JoinSupportingQueryBuilderParserTest extends CommonQueryBuilderTests
      */
     public function testJoinNotExistsBetweenWithThreeItems()
     {
-        $json = '{"condition":"AND","rules":[{"id":"join2","field":"join2","type":"text","input":"select","operator":"between","value":["a","b","c"]}]}';
+        $this->_testJoinNotExistsBetweenWithThreeItems(false);
+    }
+
+    /**
+     * @expectedException timgws\QBParseException
+     * @expectedExceptionMessage s2_value should be an array with only two items.
+     *
+     * @throws \timgws\QBParseException
+     */
+    public function testJoinNotExistsNotBetweenWithThreeItems()
+    {
+        $this->_testJoinNotExistsBetweenWithThreeItems(true);
+    }
+
+    /**
+      * @see testJoinNotExistsBetweenWithThreeItems()
+      * @see testJoinNotExistsNotBetweenWithThreeItems()
+      */
+    private function _testJoinNotExistsBetweenWithThreeItems($not_between = false)
+    {
+        $json_operator = ($not_between ? 'not_' : '') . 'between';
+        $sql_operator = ($not_between ? 'not ' : '') . 'between';
+        $json = '{"condition":"AND","rules":[{"id":"join2","field":"join2","type":"text","input":"select","operator":"'. $json_operator . '","value":["a","b","c"]}]}';
 
         $builder = $this->createQueryBuilder();
 
         $parser = $this->getParserUnderTest();
         $parser->parse($json, $builder);
 
-        $this->assertEquals('select * where not exists (select 1 from `subtable2` where subtable2.s2_col = master2.m2_col and `s2_value` between ? and ?)',
+        $this->assertEquals('select * where not exists (select 1 from `subtable2` where subtable2.s2_col = master2.m2_col and `s2_value` ' . $sql_operator . ' ? and ?)',
             $builder->toSql());
     }
 
@@ -250,5 +285,47 @@ class JoinSupportingQueryBuilderParserTest extends CommonQueryBuilderTests
         $qb->parse($this->makeJSONForInNotInTest(), $builder);
 
         $this->assertEquals('select * where `price` < ? and (`category` in (?, ?))', $builder->toSql());
+    }
+
+    /**
+     * Test for #21 (Cast datetimes and add 'not between' operator)
+     */
+    public function testDateBetween()
+    {
+        $incoming = '{ "condition": "AND", "rules": [ { "id": "dollar_amount", "field": "dollar_amount", "type": "double", "input": "number", "operator": "less", "value": "546" }, { "id": "needed_by_date", "field": "needed_by_date", "type": "date", "input": "text", "operator": "between", "value": [ "10/22/2017", "10/28/2017" ] } ], "not": false, "valid": true }';
+        $builder = $this->createQueryBuilder();
+        $qb = $this->getParserUnderTest();
+
+        $qb->parse($incoming, $builder);
+
+        $this->assertEquals('select * where `dollar_amount` < ? and `needed_by_date` between ? and ?', $builder->toSql());
+
+        $bindings = $builder->getBindings();
+        $this->assertCount(3, $bindings);
+        $this->assertEquals('546', $bindings[0]);
+        $this->assertInstanceOf("Carbon\\Carbon", $bindings[1]);
+        $this->assertInstanceOf("Carbon\\Carbon", $bindings[2]);
+    }
+
+    /**
+     * Test for #21 (Cast datetimes and add 'not between' operator)
+     */
+    public function testDateNotBetween()
+    {
+        $incoming = '{ "condition": "AND", "rules": [ { "id": "needed_by_date", "field": "needed_by_date", "type": "date", "input": "text", "operator": "not_between", "value": [ "10/22/2017", "10/28/2017" ] } ], "not": false, "valid": true }';
+        $builder = $this->createQueryBuilder();
+        $qb = $this->getParserUnderTest();
+
+        $qb->parse($incoming, $builder);
+
+        $this->assertEquals('select * where `needed_by_date` not between ? and ?', $builder->toSql());
+
+        $bindings = $builder->getBindings();
+        $this->assertCount(2, $bindings);
+        $this->assertInstanceOf("Carbon\\Carbon", $bindings[0]);
+        $this->assertInstanceOf("Carbon\\Carbon", $bindings[1]);
+        $this->assertEquals(2017, $bindings[0]->year);
+        $this->assertEquals(22, $bindings[0]->day);
+        $this->assertEquals(28, $bindings[1]->day);
     }
 }

@@ -274,11 +274,33 @@ class QueryBuilderParser
 
             if($query && $query->count() > 0){
                 $instance_valids = [];
+                $value = str_replace("%", "", $value);
 
                 foreach ($instances as $instance){
                     $instance_value = call_user_func_array([$class, $method], [$instance->$instance_member]);
 
-                    if($instance_value == $value){
+                    if(
+                        ($rule->operator == 'equal' && $instance_value == $value) ||
+                        ($rule->operator == 'not_equal' && $instance_value != $value) ||
+                        ($rule->operator == 'in' && is_array($value) && in_array($instance_value, $value)) ||
+                        ($rule->operator == 'not_in' && is_array($value) && !in_array($instance_value, $value)) ||
+                        ($rule->operator == 'less' && $instance_value < $value) ||
+                        ($rule->operator == 'less_or_equal' && $instance_value <= $value) ||
+                        ($rule->operator == 'greater' && $instance_value > $value) ||
+                        ($rule->operator == 'greater_or_equal' && $instance_value >= $value) ||
+                        ($rule->operator == 'between' && $instance_value >= $value[0] && $instance_value <= $value[1]) ||
+                        ($rule->operator == 'not_between' && !($instance_value >= $value[0] && $instance_value <= $value[1])) ||
+                        ($rule->operator == 'begins_with' && substr($instance_value, 0, strlen($value) ) === $value) ||
+                        ($rule->operator == 'not_begins_with' && !substr($instance_value, 0, strlen($value) ) === $value) ||
+                        ($rule->operator == 'contains' && strpos($instance_value, $value) !== false) ||
+                        ($rule->operator == 'not_contains' && strpos($instance_value, $value) == false) ||
+                        ($rule->operator == 'ends_with' && substr($instance_value, -strlen($value)) == $value) ||
+                        ($rule->operator == 'not_ends_with' && !substr($instance_value, -strlen($value)) == $value) ||
+                        ($rule->operator == 'is_empty' && $instance_value == "") ||
+                        ($rule->operator == 'is_not_empty' && $instance_value != "") ||
+                        ($rule->operator == 'is_null' && !$instance_value) ||
+                        ($rule->operator == 'is_not_null' && $instance_value)
+                    ){
                         array_push($instance_valids, $instance->$instance_member);
                     }
                 }

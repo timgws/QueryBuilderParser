@@ -15,10 +15,19 @@ class QueryBuilderParser
 
     /**
      * @param array $fields a list of all the fields that are allowed to be filtered by the QueryBuilder
+     * @param array $extra_fields a list of all the extra fields that are allowed to be filtered by the (extended) QueryBuilder
+     *              It has the following format: array(NAME_OF_FIELD => CLASS.METHOD.DB-FIELD)
+     *              Where NAME_OF_FIELD = The name like in $fields array for checking the submitted query
+     *                    CLASS         = The Model of the Instance in the App\ namespace
+     *                    METHOD        = The method to call on the given class
+     *                    DB_FIELD      = Field to use for filtering (has to exist as a column and on the model)
+     *              Example Call with two normal fields (name, email) and an extra field "active":
+     *                    new QueryBuilderParser(['name', 'email'], ["active" => "User.isActive.id"]);
      */
-    public function __construct(array $fields = null)
+    public function __construct(array $fields = null, array $extra_fields = null)
     {
         $this->fields = $fields;
+        $this->extra_fields = $extra_fields;
     }
 
     /**
@@ -239,21 +248,44 @@ class QueryBuilderParser
      */
     protected function convertIncomingQBtoQuery(Builder $query, stdClass $rule, $value, $queryCondition = 'AND')
     {
-        /*
-         * Convert the Operator (LIKE/NOT LIKE/GREATER THAN) given to us by QueryBuilder
-         * into on one that we can use inside the SQL query
-         */
-        $sqlOperator = $this->operator_sql[$rule->operator];
-        $operator = $sqlOperator['operator'];
-        $condition = strtolower($queryCondition);
+        if($this->fieldInNormalList($rule->field, $this->fields, $this->extra_fields)){
+            /*
+             * Convert the Operator (LIKE/NOT LIKE/GREATER THAN) given to us by QueryBuilder
+             * into on one that we can use inside the SQL query
+             */
+            $sqlOperator = $this->operator_sql[$rule->operator];
+            $operator = $sqlOperator['operator'];
+            $condition = strtolower($queryCondition);
 
-        if ($this->operatorRequiresArray($operator)) {
-            return $this->makeQueryWhenArray($query, $rule, $sqlOperator, $value, $condition);
-        } elseif ($this->operatorIsNull($operator)) {
-            return $this->makeQueryWhenNull($query, $rule, $sqlOperator, $condition);
+            if ($this->operatorRequiresArray($operator)) {
+                return $this->makeQueryWhenArray($query, $rule, $sqlOperator, $value, $condition);
+            } elseif ($this->operatorIsNull($operator)) {
+                return $this->makeQueryWhenNull($query, $rule, $sqlOperator, $condition);
+            }
+
+            return $query->where($rule->field, $sqlOperator['operator'], $value, $condition);
+        }else{
+            $instances = $query->get();
+
+            $field_data = explode(".", $this->extra_fields[$rule->field]);
+            $class = $field_data[0];
+            $method = $field_data[1];
+            $instance_member = $field_data[2];
+
+            if($query && $query->count() > 0){
+                $instance_valids = [];
+
+                foreach ($instances as $instance){
+                    $instance_value = call_user_func_array([$class, $method], [$instance->$instance_member]);
+
+                    if($instance_value == $value){
+                        array_push($instance_valids, $instance->$instance_member);
+                    }
+                }
+
+                return $query->whereIn($instance_member, $instance_valids);
+            }
         }
-
-        return $query->where($rule->field, $sqlOperator['operator'], $value, $condition);
     }
 
     /**
@@ -276,7 +308,7 @@ class QueryBuilderParser
         /*
          * The field must exist in our list.
          */
-        $this->ensureFieldIsAllowed($this->fields, $rule->field);
+        $this->ensureFieldIsAllowed($this->fields, $rule->field, $this->extra_fields);
 
         /*
          * If the SQL Operator is set not to have a value, make sure that we set the value to null.

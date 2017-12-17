@@ -78,6 +78,37 @@ This query when posted will create the following MongoDB query:
 
 Note that to use this you will need to install and configure `jenssegers/mongodb`.
 
+## Building a query with additional rules from custom method.
+
+You can use methods on your model for filtering.
+
+To use this feature pass a second array with the following format to QueryBuilderParser().
+```php
+array(NAME_OF_FIELD => CLASS.METHOD.DB-FIELD) 
+```
+
+* NAME_OF_FIELD = The name like in the first array
+* CLASS         = The Class you wish to use
+* METHOD        = The method to call on the given class
+* DB_FIELD      = Field to use for filtering (has to exist as a column and on the model)
+
+Example Call with two normal fields (name, email) and an extra field "active":
+```php
+$qbp = new QueryBuilderParser(
+    array('name', 'email'), 
+    array("active" => "\App\User.isActive.id")
+);
+```
+
+which uses a method "isActive" on the User Class in the namespace \App.
+It compares the value of your rule to the DB_FIELD on the model, so you have to have a parameter in this method.
+```php
+public static function isActive($user_id)
+{
+    return true;
+}
+```
+
 # Integration examples
 
 ## Integrating with jQuery Datatables

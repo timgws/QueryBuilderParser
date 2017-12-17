@@ -245,13 +245,35 @@ trait QBPFunctions
      *
      * @param $fields
      * @param $field
+     * @param $extra_fields
      * @throws QBParseException
      */
-    private function ensureFieldIsAllowed($fields, $field)
+    private function ensureFieldIsAllowed($fields, $field, $extra_fields)
     {
-        if (is_array($fields) && !in_array($field, $fields)) {
+        if ((is_array($fields) && is_array($extra_fields)) && !(in_array($field, $fields) || array_key_exists($field, $extra_fields))) {
             throw new QBParseException("Field ({$field}) does not exist in fields list");
         }
+    }
+
+    /**
+     * Checks if a given field is in the normal or the extra list.
+     *
+     * @param $fields
+     * @param $field
+     * @param $extra_fields
+     * @return Bool
+     */
+    private function fieldInNormalList($field, $fields, $extra_fields)
+    {
+        if ((is_array($fields)) && in_array($field, $fields)) {
+            return true;
+        }
+
+        if ((is_array($extra_fields)) && array_key_exists($field, $extra_fields)) {
+            return false;
+        }
+
+        throw new QBParseException("Field ({$field}) is in no list");
     }
 
     /**

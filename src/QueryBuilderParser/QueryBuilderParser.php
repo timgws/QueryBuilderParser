@@ -248,7 +248,7 @@ class QueryBuilderParser
      */
     protected function convertIncomingQBtoQuery(Builder $query, stdClass $rule, $value, $queryCondition = 'AND')
     {
-        if($this->fieldInNormalList($rule->field, $this->fields, $this->extra_fields)){
+        if($this->fieldInNormalList($rule->field, $this->extra_fields)){
             /*
              * Convert the Operator (LIKE/NOT LIKE/GREATER THAN) given to us by QueryBuilder
              * into on one that we can use inside the SQL query
@@ -328,7 +328,7 @@ class QueryBuilderParser
         $value = $this->getRuleValue($rule);
 
         /*
-         * The field must exist in our list.
+         * The field must exist in our lists.
          */
         $this->ensureFieldIsAllowed($this->fields, $rule->field, $this->extra_fields);
 

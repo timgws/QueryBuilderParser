@@ -241,7 +241,7 @@ trait QBPFunctions
     }
 
     /**
-     * Check that a given field is in the allowed list if set.
+     * Check that a given field is in the allowed lists if set.
      *
      * @param $fields
      * @param $field
@@ -250,8 +250,14 @@ trait QBPFunctions
      */
     private function ensureFieldIsAllowed($fields, $field, $extra_fields)
     {
-        if ((is_array($fields) && is_array($extra_fields)) && !(in_array($field, $fields) || array_key_exists($field, $extra_fields))) {
-            throw new QBParseException("Field ({$field}) does not exist in fields list");
+        if((is_array($fields) && !in_array($field, $fields))){
+            if($extra_fields){
+                if((is_array($extra_fields) && !array_key_exists($field, $extra_fields))){
+                    throw new QBParseException("Field ({$field}) does not exist in fields list");
+                }
+            }else{
+                throw new QBParseException("Field ({$field}) does not exist in fields list");
+            }
         }
     }
 
@@ -263,17 +269,15 @@ trait QBPFunctions
      * @param $extra_fields
      * @return Bool
      */
-    private function fieldInNormalList($field, $fields, $extra_fields)
+    private function fieldInNormalList($field, $extra_fields)
     {
-        if ((is_array($fields)) && in_array($field, $fields)) {
-            return true;
-        }
+        $ret = true;
 
         if ((is_array($extra_fields)) && array_key_exists($field, $extra_fields)) {
-            return false;
+            $ret = false;
         }
 
-        throw new QBParseException("Field ({$field}) is in no list");
+        return $ret;
     }
 
     /**

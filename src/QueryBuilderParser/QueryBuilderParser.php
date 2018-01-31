@@ -13,12 +13,16 @@ class QueryBuilderParser
 
     protected $fields;
 
+    protected $useHaving;
+
     /**
      * @param array $fields a list of all the fields that are allowed to be filtered by the QueryBuilder
+     * @param bool $useHaving should we use "having" instead of "where" in queries
      */
-    public function __construct(array $fields = null)
+    public function __construct(array $fields = null, bool $useHaving = false)
     {
         $this->fields = $fields;
+        $this->useHaving = $useHaving;
     }
 
     /**
@@ -251,6 +255,10 @@ class QueryBuilderParser
             return $this->makeQueryWhenArray($query, $rule, $sqlOperator, $value, $condition);
         } elseif ($this->operatorIsNull($operator)) {
             return $this->makeQueryWhenNull($query, $rule, $sqlOperator, $condition);
+        }
+
+        if ($this->useHaving) {
+            return $query->having($rule->field, $sqlOperator['operator'], $value, $condition);
         }
 
         return $query->where($rule->field, $sqlOperator['operator'], $value, $condition);

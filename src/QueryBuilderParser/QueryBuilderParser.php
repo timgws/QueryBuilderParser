@@ -13,16 +13,26 @@ class QueryBuilderParser
 
     protected $fields;
 
-    protected $useHaving;
+    protected $useHaving = false;
 
     /**
      * @param array $fields a list of all the fields that are allowed to be filtered by the QueryBuilder
-     * @param bool $useHaving should we use "having" instead of "where" in queries
      */
-    public function __construct(array $fields = null, bool $useHaving = false)
+    public function __construct(array $fields = null)
     {
         $this->fields = $fields;
-        $this->useHaving = $useHaving;
+    }
+
+    /**
+     * Use "having" instead of "where" in the queries.
+     *
+     * @return QueryBuilderParser
+     */
+    public function setUseHaving()
+    {
+        $this->useHaving = true;
+
+        return $this;
     }
 
     /**

@@ -2,13 +2,14 @@
 
 namespace timgws\test;
 
+use \PHPUnit\Framework\TestCase;
 use Illuminate\Database\Connection as Connection;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Database\Query\Grammars\MySqlGrammar as MySQLGrammar;
 use Illuminate\Database\Query\Processors\MySqlProcessor as MySQLProcessor;
 use timgws\QueryBuilderParser;
 
-class CommonQueryBuilderTests extends \PHPUnit_Framework_TestCase
+class CommonQueryBuilderTests extends TestCase
 {
     protected $simpleQuery = '{"condition":"AND","rules":[{"id":"price","field":"price","type":"double","operator":"less","value":"10.25"}]}';
     protected $json1 = '{

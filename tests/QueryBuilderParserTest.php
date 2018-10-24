@@ -12,7 +12,9 @@ class QueryBuilderParserTest extends CommonQueryBuilderTests
         $qb = $this->getParserUnderTest();
 
         $test = $qb->parse("{}", $builder);
+        $this->assertEquals('select *', $builder->toSql());
     }
+
     public function testSimpleQuery()
     {
         $builder = $this->createQueryBuilder();
@@ -455,6 +457,7 @@ class QueryBuilderParserTest extends CommonQueryBuilderTests
         $qb = $this->getParserUnderTest();
 
         $qb->parse($some_json_input, $builder);
+        $this->assertEquals('select *', $builder->toSql());
     }
 
     public function testQueryContains()

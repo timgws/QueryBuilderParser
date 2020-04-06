@@ -187,25 +187,19 @@ class JoinSupportingQueryBuilderParserTest extends CommonQueryBuilderTests
           $builder->toSql());
     }
 
-    /**
-     * @expectedException timgws\QBParseException
-     * @expectedExceptionMessage s2_value should be an array with only two items.
-     *
-     * @throws \timgws\QBParseException
-     */
     public function testJoinNotExistsBetweenWithThreeItems()
     {
+        $this->expectException('\timgws\QBParseException');
+        $this->expectExceptionMessage("should be an array with only two items");
+
         $this->_testJoinNotExistsBetweenWithThreeItems(false);
     }
 
-    /**
-     * @expectedException timgws\QBParseException
-     * @expectedExceptionMessage s2_value should be an array with only two items.
-     *
-     * @throws \timgws\QBParseException
-     */
     public function testJoinNotExistsNotBetweenWithThreeItems()
     {
+        $this->expectException('\timgws\QBParseException');
+        $this->expectExceptionMessage("should be an array with only two items");
+
         $this->_testJoinNotExistsBetweenWithThreeItems(true);
     }
 
@@ -228,14 +222,11 @@ class JoinSupportingQueryBuilderParserTest extends CommonQueryBuilderTests
             $builder->toSql());
     }
 
-    /**
-     * @expectedException timgws\QBParseException
-     * @expectedExceptionMessage Field (join4) does not exist in fields list
-     *
-     * @throws \timgws\QBParseException
-     */
     public function testJoinNotExistsBetweenWithFieldThatDoesNotExist()
     {
+        $this->expectException('\timgws\QBParseException');
+        $this->expectExceptionMessage("does not exist in fields list");
+
         $json = '{"condition":"AND","rules":[{"id":"join4","field":"join4","type":"text","input":"select","operator":"between","value":["a","b","c"]}]}';
 
         $builder = $this->createQueryBuilder();

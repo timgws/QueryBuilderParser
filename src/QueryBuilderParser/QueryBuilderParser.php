@@ -13,12 +13,26 @@ class QueryBuilderParser
 
     protected $fields;
 
+    protected $useHaving = false;
+
     /**
      * @param array $fields a list of all the fields that are allowed to be filtered by the QueryBuilder
      */
     public function __construct(array $fields = null)
     {
         $this->fields = $fields;
+    }
+
+    /**
+     * Use "having" instead of "where" in the queries.
+     *
+     * @return QueryBuilderParser
+     */
+    public function setUseHaving()
+    {
+        $this->useHaving = true;
+
+        return $this;
     }
 
     /**
@@ -251,6 +265,10 @@ class QueryBuilderParser
             return $this->makeQueryWhenArray($query, $rule, $sqlOperator, $value, $condition);
         } elseif ($this->operatorIsNull($operator)) {
             return $this->makeQueryWhenNull($query, $rule, $sqlOperator, $condition);
+        }
+
+        if ($this->useHaving) {
+            return $query->having($rule->field, $sqlOperator['operator'], $value, $condition);
         }
 
         return $query->where($rule->field, $sqlOperator['operator'], $value, $condition);

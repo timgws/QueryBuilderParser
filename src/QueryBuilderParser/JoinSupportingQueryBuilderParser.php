@@ -95,28 +95,51 @@ class JoinSupportingQueryBuilderParser extends QueryBuilderParser
 
         $not = array_key_exists('not_exists', $subclause) && $subclause['not_exists'];
 
-        // Create a where exists clause to join to the other table, and find results matching the criteria
-        $query = $query->whereExists(
-            /**
-             * @param Builder $query
-             */
-            function(Builder $query) use ($subclause) {
+	    if ( $not ) {
+		    // Create a where exists clause to join to the other table, and find results matching the criteria
+		    $query = $query->whereExists(
+		    /**
+		     * @param Builder $query
+		     */
+			    function(Builder $query) use ($subclause, $not, $condition) {
+				    $q = $query->selectRaw(1)
+				               ->from($subclause['to_table'])
+				               ->whereRaw($subclause['to_table'].'.'.$subclause['to_col']
+				                          .' = '
+				                          .$subclause['from_table'].'.'.$subclause['from_col']);
+				    if ( ! isset( $subclause["through"] ) ) {
+					    if ( array_key_exists( 'to_clause', $subclause ) ) {
+						    $q->where( $subclause['to_clause'] );
+					    }
+					    $this->buildSubclauseInnerQuery( $subclause, $q );
+				    } else {
+					    $this->buildSubclauseThroughQuery( $subclause, $not, $condition, $q );
+				    }
 
-                $q = $query->selectRaw(1)
-                    ->from($subclause['to_table'])
-                    ->whereRaw($subclause['to_table'].'.'.$subclause['to_col']
-                        .' = '
-                        .$subclause['from_table'].'.'.$subclause['from_col']);
+			    },
+			    $condition,
+			    $not
+		    );
+	    } else {
+		    // Create a join clause to join to the other table, and find results matching the criteria
 
-                if (array_key_exists('to_clause', $subclause)) {
-                    $q->where($subclause['to_clause']);
-                }
-
-                $this->buildSubclauseInnerQuery($subclause, $q);
-            },
-            $condition,
-            $not
-        );
+		    $query = $query->join( $subclause["to_table"], $subclause['to_table'] . '.' . $subclause['to_col'], '=', $subclause['from_table'] . '.' . $subclause['from_col'] );
+		    $first_from_col = $subclause['from_col'];
+		    $first_from = $subclause['from_table'];
+		    //Loop through the 'through' key to access through multiple tables
+		    while ( isset( $subclause['through'] ) ) {
+			    $subclause["through"]["require_array"] = $subclause["require_array"];
+			    $subclause["through"]["operator"]      = $subclause["operator"];
+			    $subclause["through"]["value"]         = $subclause["value"];
+			    $subclause                             = $subclause["through"];
+			    $query                                 = $query->join( $subclause["to_table"], $subclause['to_table'] . '.' . $subclause['to_col'], '=', $subclause['from_table'] . '.' . $subclause['from_col'] );
+		    }
+		    if (array_key_exists('to_clause', $subclause)) {
+			    $query->where($subclause['to_clause']);
+		    }
+		    $this->buildSubclauseInnerQuery( $subclause, $query );
+		    $query->groupBy( $first_from.".".$first_from_col );
+	    }
 
         return $query;
     }
@@ -205,5 +228,37 @@ class JoinSupportingQueryBuilderParser extends QueryBuilderParser
 
         return $query->whereNull($subclause['to_value_column']);
     }
+
+	private function buildSubclauseThroughQuery($subclause, $not, $condition, Builder $q) {
+		$subclause["through"]["require_array"] = $subclause["require_array"];
+		$subclause["through"]["operator"]      = $subclause["operator"];
+		$subclause["through"]["value"]         = $subclause["value"];
+		$subclause                             = $subclause["through"];
+
+		$q->whereExists(
+			function ( \Illuminate\Database\Query\Builder $query ) use ( $subclause, $not, $condition, $q ) {
+
+				$q = $query->selectRaw( 1 )
+				           ->from( $subclause['to_table'] )
+				           ->whereRaw( $subclause['to_table'] . '.' . $subclause['to_col']
+				                       . ' = '
+				                       . $subclause['from_table'] . '.' . $subclause['from_col'] );
+
+
+
+				if ( ! isset( $subclause["through"] ) ) {
+					if ( array_key_exists( 'to_clause', $subclause ) ) {
+						$q->where( $subclause['to_clause'] );
+					}
+					$this->buildSubclauseInnerQuery( $subclause, $q );
+				} else {
+					$this->buildSubclauseThroughQuery( $subclause, $not, $condition, $q );
+				}
+			},
+			$condition,
+			$not
+		);
+		return $q;
+	}
 
 }

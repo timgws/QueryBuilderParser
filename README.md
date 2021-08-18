@@ -179,7 +179,7 @@ On the client side, a little bit of magic is required to make everything work.
 
     $table = DB::table('table_of_data_to_integrate');
     $jsqbp = new JoinSupportingQueryBuilderParser($fields, $this->getJoinFields());
-    $test = $parser->parse($json, $builder);
+    $test = $jsqbp->parse($json, $builder);
 ```
 
 Which will build an SQL query similar to:

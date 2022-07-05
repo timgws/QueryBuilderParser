@@ -1,23 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:noNamespaceSchemaLocation="http://schema.phpunit.de/4.2/phpunit.xsd"
-         bootstrap="vendor/autoload.php"
-         backupGlobals="false"
-         verbose="true">
- <testsuites>
-  <testsuite name="MySQL">
-    <directory suffix="Test.php">tests</directory>
-  </testsuite>
-
-  <testsuite name="MongoDB">
-    <directory suffix="MongoDB.php">tests/mongodb</directory>
-  </testsuite>
- </testsuites>
-
-  <filter>
-    <whitelist processUncoveredFilesFromWhitelist="true">
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.3/phpunit.xsd" bootstrap="vendor/autoload.php" backupGlobals="false" verbose="true">
+  <coverage processUncoveredFiles="true">
+    <include>
       <directory suffix=".php">src</directory>
-    </whitelist>
-  </filter>
+    </include>
+  </coverage>
+  <testsuites>
+    <testsuite name="MySQL">
+      <directory suffix="Test.php">tests</directory>
+    </testsuite>
+    <testsuite name="MongoDB">
+      <directory suffix="MongoDB.php">tests/mongodb</directory>
+    </testsuite>
+  </testsuites>
 </phpunit>
-

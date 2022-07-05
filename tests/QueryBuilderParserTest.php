@@ -25,6 +25,19 @@ class QueryBuilderParserTest extends CommonQueryBuilderTests
         $this->assertEquals('select * where `price` < ?', $builder->toSql());
     }
 
+    public function testSimpleQueryNoInjection()
+    {
+        $builder = $this->createQueryBuilder();
+        $qb = $this->getParserUnderTest();
+
+        $this->expectException('timgws\QBParseException');
+        $this->expectExceptionMessage("Condition can only be one of");
+
+        $test = $qb->parse($this->simpleQueryInjection, $builder);
+
+        $this->assertEquals('select * where `price` < ?', $builder->toSql());
+    }
+
     public function testMoreComplexQuery()
     {
         $builder = $this->createQueryBuilder();

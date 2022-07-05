@@ -12,6 +12,7 @@ use timgws\QueryBuilderParser;
 class CommonQueryBuilderTests extends TestCase
 {
     protected $simpleQuery = '{"condition":"AND","rules":[{"id":"price","field":"price","type":"double","operator":"less","value":"10.25"}]}';
+    protected $simpleQueryInjection = '{"condition":"ALSO","rules":[{"id":"price","field":"price","type":"double","operator":"less","value":"10.25"},{"id":"price","field":"price","type":"double","operator":"greater","value":"9.25"}]}';
     protected $json1 = '{
        "condition":"AND",
        "rules":[

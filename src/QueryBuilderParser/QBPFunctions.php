@@ -95,6 +95,10 @@ trait QBPFunctions
      */
     protected function validateCondition($condition)
     {
+        if (is_null($condition)) {
+            return $condition;
+        }
+
         $condition = trim(strtolower($condition));
 
         if ($condition !== 'and' && $condition !== 'or') {

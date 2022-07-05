@@ -216,6 +216,7 @@ class QueryBuilderParser
         /*
          * Ensure that the value is correct for the rule, return query on exception
          */
+        $this->validateCondition($queryCondition);
         try {
             $value = $this->getValueForQueryFromRule($rule);
         } catch (QBRuleException $e) {

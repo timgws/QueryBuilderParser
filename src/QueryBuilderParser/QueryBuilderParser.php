@@ -5,13 +5,24 @@ namespace timgws;
 use \Carbon\Carbon;
 use \stdClass;
 use \Illuminate\Database\Query\Builder;
+use \Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use \timgws\QBParseException;
 
 class QueryBuilderParser
 {
     use QBPFunctions;
 
+    /**
+     * The fields (if any) that we allow to filter on using QBP
+     * @var array|null
+     */
     protected $fields;
+
+    /**
+     * A list of all the callbacks that can be called to cleanse provided values from QBP
+     * @var array
+     */
+    private $cleanFieldCallbacks = [];
 
     /**
      * @param array $fields a list of all the fields that are allowed to be filtered by the QueryBuilder
@@ -27,13 +38,13 @@ class QueryBuilderParser
      * Build a query based on JSON that has been passed into the function, onto the builder passed into the function.
      *
      * @param $json
-     * @param Builder $querybuilder
+     * @param EloquentBuilder|Builder $querybuilder
      *
      * @throws QBParseException
      *
      * @return Builder
      */
-    public function parse($json, Builder $querybuilder)
+    public function parse($json, EloquentBuilder|Builder $querybuilder)
     {
         // do a JSON decode (throws exceptions if there is a JSON error...)
         $query = $this->decodeJSON($json);
@@ -55,14 +66,14 @@ class QueryBuilderParser
      * Called by parse, loops through all the rules to find out if nested or not.
      *
      * @param array $rules
-     * @param Builder $querybuilder
+     * @param EloquentBuilder|Builder $querybuilder
      * @param string $queryCondition
      *
      * @throws QBParseException
      *
      * @return Builder
      */
-    protected function loopThroughRules(array $rules, Builder $querybuilder, $queryCondition = 'AND')
+    protected function loopThroughRules(array $rules, EloquentBuilder|Builder $querybuilder, $queryCondition = 'AND')
     {
         foreach ($rules as $rule) {
             /*
@@ -99,12 +110,12 @@ class QueryBuilderParser
      *
      * When a rule is actually a group of rules, we want to build a nested query with the specified condition (AND/OR)
      *
-     * @param Builder $querybuilder
+     * @param EloquentBuilder|Builder $querybuilder
      * @param stdClass $rule
      * @param string|null $condition
      * @return Builder
      */
-    protected function createNestedQuery(Builder $querybuilder, stdClass $rule, $condition = null)
+    protected function createNestedQuery(EloquentBuilder|Builder $querybuilder, stdClass $rule, $condition = null)
     {
         if ($condition === null) {
             $condition = $rule->condition;
@@ -203,7 +214,7 @@ class QueryBuilderParser
      * Make sure that all the correct fields are in the rule object then add the expression to
      * the query that was given by the user to the QueryBuilder.
      *
-     * @param Builder $query
+     * @param EloquentBuilder|Builder $query
      * @param stdClass $rule
      * @param string $queryCondition and/or...
      *
@@ -211,7 +222,7 @@ class QueryBuilderParser
      *
      * @return Builder
      */
-    protected function makeQuery(Builder $query, stdClass $rule, $queryCondition = 'AND')
+    protected function makeQuery(EloquentBuilder|Builder $query, stdClass $rule, $queryCondition = 'AND')
     {
         /*
          * Ensure that the value is correct for the rule, return query on exception
@@ -227,7 +238,7 @@ class QueryBuilderParser
     }
 
     /**
-     * Convert an incomming rule from jQuery QueryBuilder to the Eloquent Querybuilder
+     * Convert an incoming rule from jQuery QueryBuilder to the Eloquent Querybuilder
      *
      * (This used to be part of makeQuery, where the name made sense, but I pulled it
      * out to reduce some duplicated code inside JoinSupportingQueryBuilder)
@@ -238,7 +249,7 @@ class QueryBuilderParser
      * @param string $queryCondition and/or...
      * @return Builder
      */
-    protected function convertIncomingQBtoQuery(Builder $query, stdClass $rule, $value, $queryCondition = 'AND')
+    protected function convertIncomingQBtoQuery(EloquentBuilder|Builder $query, stdClass $rule, $value, $queryCondition = 'AND')
     {
         /*
          * Convert the Operator (LIKE/NOT LIKE/GREATER THAN) given to us by QueryBuilder
@@ -258,6 +269,28 @@ class QueryBuilderParser
     }
 
     /**
+     * Add a filter for cleaning values that are inputted from a QueryBuilder (eg, for ACL)
+     * @param $field
+     * @param callable|null $callback
+     * @return $this
+     * @throws \timgws\QBParseException
+     */
+    public function clean($field, Callable $callback = null)
+    {
+        if (isset($this->cleanFieldCallbacks[$field])) {
+            throw new QBParseException("Field $field already has a clean callback set.");
+        }
+
+        if ($callback == null) {
+            return $this;
+        }
+
+        $this->cleanFieldCallbacks[$field] = $callback;
+
+        return $this;
+    }
+
+    /**
      * Ensure that the value is correct for the rule, try and set it if it's not.
      *
      * @param stdClass $rule
@@ -272,6 +305,10 @@ class QueryBuilderParser
         /*
          * Make sure most of the common fields from the QueryBuilder have been added.
          */
+        if (isset($this->cleanFieldCallbacks[$rule->field])) {
+            $rule->value = call_user_func($this->cleanFieldCallbacks[$rule->field], $rule->value);
+        }
+
         $value = $this->getRuleValue($rule);
 
         /*

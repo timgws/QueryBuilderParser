@@ -29,7 +29,7 @@
     },
     "minimum-stability": "dev",
     "require": {
-        "illuminate/database": "^9.0||^8.0||^7.0||^6.0||4.1 - 6.0|^10.0"
+        "illuminate/database": "^9.0||^8.0||^10.0"
     },
     "suggest": {
         "jenssegers/mongodb": "Use QueryBuilderParser with MongoDB"

@@ -2,8 +2,9 @@
 
 namespace timgws;
 
-use Illuminate\Database\Query\Builder;
 use stdClass;
+use \Illuminate\Database\Query\Builder;
+use \Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use timgws\QBParseException;
 
 class JoinSupportingQueryBuilderParser extends QueryBuilderParser
@@ -42,15 +43,15 @@ class JoinSupportingQueryBuilderParser extends QueryBuilderParser
      * Make sure that all the correct fields are in the rule object then add the expression to
      * the query that was given by the user to the QueryBuilder.
      *
-     * @param Builder  $query
-     * @param stdClass $rule
-     * @param string   $queryCondition the condition that will be used in the query
+     * @param EloquentBuilder|Builder $query
+     * @param stdClass                $rule
+     * @param string                  $queryCondition the condition that will be used in the query
      *
      * @throws QBParseException
      *
-     * @return Builder
+     * @return EloquentBuilder|Builder
      */
-    protected function makeQuery(Builder $query, stdClass $rule, $queryCondition = 'AND')
+    protected function makeQuery(EloquentBuilder|Builder $query, stdClass $rule, $queryCondition = 'AND')
     {
         /*
          * Ensure that the value is correct for the rule, return query on exception
@@ -73,10 +74,10 @@ class JoinSupportingQueryBuilderParser extends QueryBuilderParser
     /**
      * Build a subquery clause if there are join fields that have been specified.
      *
-     * @param Builder $query
+     * @param EloquentBuilder|Builder $query
      * @param stdClass $rule
      * @param string|null $value
-     * @return Builder the query builder object
+     * @return EloquentBuilder|Builder the query builder object
      */
     private function buildSubclauseQuery($query, $rule, $value, $condition)
     {
@@ -129,7 +130,7 @@ class JoinSupportingQueryBuilderParser extends QueryBuilderParser
      * @param Builder $query
      * @return Builder the query builder object
      */
-    private function buildSubclauseInnerQuery($subclause, Builder $query)
+    private function buildSubclauseInnerQuery($subclause, EloquentBuilder|Builder $query)
     {
         if ($subclause['require_array']) {
             return $this->buildRequireArrayQuery($subclause, $query);

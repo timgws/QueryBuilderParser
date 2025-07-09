@@ -56,9 +56,9 @@ class CommonQueryBuilderTests extends TestCase
     protected function createQueryBuilder()
     {
         $pdo = new \PDO('sqlite::memory:');
-        $builder = new Builder(new Connection($pdo), new MySQLGrammar(), new MySQLProcessor());
-
-        return $builder;
+		$connection = new Connection($pdo);
+		
+        return new Builder($connection, new MySQLGrammar($connection), new MySQLProcessor());
     }
 
     protected function makeJSONForInNotInTest($operator = 'in')

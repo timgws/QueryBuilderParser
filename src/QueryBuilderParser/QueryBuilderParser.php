@@ -79,12 +79,6 @@ class QueryBuilderParser
             /*
              * If makeQuery does not see the correct fields, it will return the QueryBuilder without modifications
              */
-            // $querybuilder = $this->makeQuery($querybuilder, $rule, $queryCondition);
-			//
-			// if ($this->isNested($rule)) {
-			// 	$querybuilder = $this->createNestedQuery($querybuilder, $rule, $queryCondition);
-			// }
-			
 			if ($this->isNested($rule)) {
 				$querybuilder = $this->createNestedQuery($querybuilder, $rule, $queryCondition);
 			} else {

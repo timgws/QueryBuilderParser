@@ -56,8 +56,8 @@ class CommonQueryBuilderTests extends TestCase
     protected function createQueryBuilder()
     {
         $pdo = new \PDO('sqlite::memory:');
-		$connection = new Connection($pdo);
-		
+        $connection = new Connection($pdo);
+
         return new Builder($connection, new MySQLGrammar($connection), new MySQLProcessor());
     }
 
@@ -79,7 +79,7 @@ class CommonQueryBuilderTests extends TestCase
                    "id":"category",
                    "field":"category",
                    "type":"integer",
-                   "operator":"'.$operator.'",
+                   "operator":"' . $operator . '",
                    "value":[
                       "1", "2"
                    ]}

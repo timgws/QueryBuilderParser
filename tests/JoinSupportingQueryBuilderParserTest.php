@@ -37,6 +37,21 @@ class JoinSupportingQueryBuilderParserTest extends CommonQueryBuilderTests
                 'to_value_column' => 's_value',
                 'to_clause'       => array('othercol' => 'value'),
             ),
+            'join2through' => array(
+	            'from_table'      => 'master2',
+	            'from_col'        => 'm2_col',
+	            'to_table'        => 'subtable2',
+	            'to_col'          => 's2_col',
+	            'to_value_column' => 's2_value',
+	            'not_exists'      => true,
+	            'through' => array(
+		            'from_table'      => 'subtable2',
+		            'from_col'        => 's2_col',
+		            'to_table'        => 'subtable3',
+		            'to_col'          => 's3_col',
+		            'to_value_column' => 's3_value',
+	            )
+            ),
         );
     }
 
@@ -319,4 +334,17 @@ class JoinSupportingQueryBuilderParserTest extends CommonQueryBuilderTests
         $this->assertEquals(22, $bindings[0]->day);
         $this->assertEquals(28, $bindings[1]->day);
     }
+
+	public function testJoinNotExistsInThrough()
+	{
+		$json = '{"condition":"AND","rules":[{"id":"join2through","field":"join2through","type":"text","input":"select","operator":"in","value":["a","b"]}]}';
+
+		$builder = $this->createQueryBuilder();
+
+		$parser = $this->getParserUnderTest();
+		$parser->parse($json, $builder);
+
+		$this->assertEquals('select * where not exists (select 1 from `subtable2` where subtable2.s2_col = master2.m2_col and not exists (select 1 from `subtable3` where subtable3.s3_col = subtable2.s2_col and `s3_value` in (?, ?)))',
+			$builder->toSql());
+	}
 }
